@@ -1,5 +1,6 @@
 using DominoPontaDeQuina.Core.Enums;
 using DominoPontaDeQuina.Core.Models;
+using DominoPontaDeQuina.Core.Services;
 using System.Collections.ObjectModel;
 
 namespace DominoPontaDeQuina.Core;
@@ -30,8 +31,32 @@ public class Jogo()
     /// </summary>
     public Task RegistrarTimesAsync()
     {
-        // TODO ALUNO: registrar os times e jogadores da partida antes do inicio da primeira rodada.
-        throw new NotImplementedException();
+        if (PartidaAtual == null)
+            throw new InvalidOperationException("Não há partida ativa para registrar times.");
+
+        // Cria dois times
+        var time1 = new Time("Time 1");
+        var time2 = new Time("Time 2");
+        
+        // Adiciona jogadores aos times
+        time1.AdicionarJogador(new Jogador("Jogador 1"));
+        
+        // Se pontuação alvo é 50 (padrão), configura 2 jogadores (1 por time)
+        // Caso contrário, configura 4 jogadores (2 por time)
+        if (PartidaAtual.PontuacaoAlvo == 50)
+        {
+            time2.AdicionarJogador(new Jogador("Jogador 2"));
+        }
+        else
+        {
+            time1.AdicionarJogador(new Jogador("Jogador 3"));
+            time2.AdicionarJogador(new Jogador("Jogador 4"));
+        }
+        
+        PartidaAtual.AdicionarTime(time1);
+        PartidaAtual.AdicionarTime(time2);
+        
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -42,11 +67,11 @@ public class Jogo()
         if (PartidaAtual?.Status is StatusPartida.EmAndamento)
             throw new InvalidOperationException("Nao e possivel iniciar uma nova partida enquanto a partida atual estiver em andamento.");
 
-        _partidas.Push(new());
+        _partidas.Push(new Partida());
 
         await RegistrarTimesAsync();
 
-        PartidaAtual.IniciarNovaRodada();
+        PartidaAtual!.IniciarNovaRodada();
         PartidaAtual.RodadaAtual?.Iniciar(ObterJogadoresDaPartida(), ObterRodadaAnterior());
 
         while (PartidaAtual.Status is StatusPartida.EmAndamento)
@@ -128,8 +153,11 @@ public class Jogo()
     /// <returns><see langword="true"/> quando a jogada for valida; caso contrario, <see langword="false"/>.</returns>
     public bool ValidarJogada(Jogada jogada)
     {
-        // TODO ALUNO: validar se a jogada e compativel com o estado atual do tabuleiro.
-        throw new NotImplementedException();
+        if (PartidaAtual?.RodadaAtual == null)
+            return false;
+        
+        var validator = new JogadaValidator();
+        return validator.ValidarJogada(jogada, PartidaAtual.RodadaAtual.Tabuleiro, PartidaAtual.RodadaAtual.JogadorAtual);
     }
 
     /// <summary>

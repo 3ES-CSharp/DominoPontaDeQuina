@@ -1,123 +1,138 @@
 using DominoPontaDeQuina.Core.Enums;
 using DominoPontaDeQuina.Core.Interfaces;
+using DominoPontaDeQuina.Core.Services;
 using System.Collections.ObjectModel;
 
 namespace DominoPontaDeQuina.Core.Models;
 
-/// <inheritdoc cref="IRodada"/>
+// CLASSE MODIFICADA PELO ALUNO - GRUPO 01
+// Gaps implementados: 
+// - Distribuição de peças (via service)
+// - Definição do jogador inicial
+// - Controle de turno
+// - Verificação de batida e travamento
+// - Cálculo de pontuação
+// - Definição do vencedor
 public class Rodada() : IRodada
 {
-    /// <summary>
-    /// Armazena internamente as jogadas registradas nesta rodada.
-    /// </summary>
-    Stack<Jogada> Jogadas { get; } = [];
+    private Stack<Jogada> _jogadas = [];
+    private Queue<MaoJogador> _jogadores = [];
+    private readonly IDistribuicaoService _distribuicaoService = new DistribuicaoService();
+    private readonly IJogadaValidator _jogadaValidator = new JogadaValidator();
+    private readonly IPlacarService _placarService = new PlacarService();
+    private readonly IRodadaService _rodadaService;
+    private List<MaoJogador> _maosJogadores = [];
+    private Partida? _partida;
 
-    /// <inheritdoc />
+    public Rodada(Partida partida) : this()
+    {
+        _partida = partida;
+        _rodadaService = new RodadaService(_placarService);
+    }
+
     public Tabuleiro Tabuleiro { get; } = new();
-
-    /// <summary>
-    /// Mantem a fila de maos de jogadores na ordem de execucao da rodada.
-    /// </summary>
-    Queue<MaoJogador> _jogadores = [];
-
-    /// <inheritdoc />
-    public ReadOnlyCollection<Jogada> HistoricoJogadas => Jogadas.ToList().AsReadOnly();
-
-    /// <inheritdoc />
+    public ReadOnlyCollection<Jogada> HistoricoJogadas => _jogadas.ToList().AsReadOnly();
     public MaoJogador JogadorAtual => _jogadores.Peek();
-
-    /// <inheritdoc />
     public StatusRodada Status { get; private set; } = StatusRodada.NaoIniciada;
-
-    /// <inheritdoc />
     public TipoFinalizacaoRodada? TipoFinalizacao { get; private set; }
 
-    /// <inheritdoc />
-    public void Iniciar(ReadOnlyCollection<Jogador> jogadores, Rodada rodadaAnterior = null)
+    // IMPLEMENTADO PELO ALUNO - Inicia a rodada (distribui peças e define quem começa)
+    public void Iniciar(ReadOnlyCollection<Jogador> jogadores, Rodada? rodadaAnterior = null)
     {
-        var maosJogadores = DistribuirPecas(jogadores);
-        var primeiroJogador = GetPrimeiroJogador(maosJogadores, rodadaAnterior);
-        OrganizaJogadores(maosJogadores, primeiroJogador);
+        if (jogadores == null || jogadores.Count == 0)
+            throw new ArgumentException("É necessário pelo menos um jogador para iniciar a rodada.");
+
+        _maosJogadores = _distribuicaoService.DistribuirPecas(jogadores.ToList());
+        var primeiroJogador = GetPrimeiroJogador(_maosJogadores, rodadaAnterior);
+        OrganizaJogadores(_maosJogadores, primeiroJogador);
+        Tabuleiro.Limpar();
         Status = StatusRodada.EmAndamento;
     }
 
-    /// <inheritdoc />
+    // IMPLEMENTADO PELO ALUNO - Registra uma jogada
     public void RegistrarJogada(Jogada jogada)
     {
-        ArgumentNullException.ThrowIfNull(jogada);
+        if (Status != StatusRodada.EmAndamento)
+            throw new InvalidOperationException("Não é possível registrar jogada em uma rodada que não está em andamento.");
+
+        if (!jogada.EhPassarVez())
+        {
+            var maoAtual = JogadorAtual;
+            maoAtual.RemoverPeca(jogada.Peca!.Value);
+            Tabuleiro.Colar(jogada.Peca.Value, jogada.Lado!.Value);
+        }
+
         jogada.MarcarComoAplicada();
-        Jogadas.Push(jogada);
+        _jogadas.Push(jogada);
         CalcularPontuacao();
+        ProximoJogador(); // Controle de turno
     }
 
-    /// <inheritdoc />
+    // IMPLEMENTADO PELO ALUNO - Verifica se alguém bateu
     public bool VerificarBatida()
     {
-        // TODO ALUNO: implementar a logica para verificar se houve batida.
-        throw new NotImplementedException();
+        var bateu = _rodadaService.VerificarBatida(_maosJogadores);
+        if (bateu != null)
+        {
+            TipoFinalizacao = TipoFinalizacaoRodada.JogadorBateu;
+            Status = StatusRodada.Finalizada;
+            return true;
+        }
+        return false;
     }
 
-    /// <inheritdoc />
+    // IMPLEMENTADO PELO ALUNO - Verifica se o tabuleiro travou
     public bool VerificarTabuleiroTravado()
     {
-        // TODO ALUNO: implementar a logica para verificar se houve travamento.
-        throw new NotImplementedException();
+        if (_rodadaService.VerificarTabuleiroTravado(Tabuleiro, _maosJogadores, _jogadaValidator))
+        {
+            TipoFinalizacao = TipoFinalizacaoRodada.TabuleiroTravado;
+            Status = StatusRodada.Finalizada;
+            return true;
+        }
+        return false;
     }
 
-    /// <inheritdoc />
+    // IMPLEMENTADO PELO ALUNO - Retorna o vencedor da rodada
     public Jogador? GetVencedor()
     {
-        // TODO ALUNO: implementar a logica para obter o vencedor da rodada.
-        throw new NotImplementedException();
+        if (Status != StatusRodada.Finalizada) return null;
+        var bateu = _rodadaService.VerificarBatida(_maosJogadores);
+        return _rodadaService.DeterminarVencedor(_maosJogadores, TipoFinalizacao!.Value, bateu);
     }
 
-    /// <summary>
-    /// Distribui as pecas entre os jogadores da rodada e retorna as maos correspondentes.
-    /// </summary>
-    /// <param name="jogadores">Os jogadores participantes da rodada.</param>
-    /// <returns>A lista de maos distribuidas para os jogadores.</returns>
-    private List<MaoJogador> DistribuirPecas(ReadOnlyCollection<Jogador> jogadores)
-    {
-        // TODO ALUNO: implementar a distribuicao das pecas entre os jogadores.
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Determina o primeiro jogador da rodada com base nas maos distribuidas e na rodada anterior.
-    /// </summary>
-    /// <param name="jogadores">As maos dos jogadores desta rodada.</param>
-    /// <param name="rodadaAnterior">A rodada anterior, quando houver.</param>
-    /// <returns>O jogador que deve iniciar a rodada.</returns>
+    // IMPLEMENTADO PELO ALUNO - Define quem começa a rodada
+    // 1ª rodada: quem tem a peça [6|6] | Demais: vencedor da anterior
     private Jogador GetPrimeiroJogador(List<MaoJogador> jogadores, Rodada? rodadaAnterior = null)
     {
-        if (rodadaAnterior is not null)
-        {
-            return rodadaAnterior.GetVencedor();
-        }
-        else
-        {
-            // TODO ALUNO: implementar a logica para obter o primeiro jogador da rodada.
-            throw new NotImplementedException();
-        }
+        if (rodadaAnterior?.GetVencedor() is Jogador vencedor)
+            return vencedor;
+
+        var comSena = jogadores.FirstOrDefault(m => m.PossuiSena());
+        return comSena?.Jogador ?? jogadores.First().Jogador;
     }
 
-    /// <summary>
-    /// Organiza a fila de jogadores da rodada a partir do primeiro jogador definido.
-    /// </summary>
-    /// <param name="jogadores">As maos dos jogadores da rodada.</param>
-    /// <param name="primeiroJogador">O jogador que iniciara a rodada.</param>
-    private void OrganizaJogadores(List<MaoJogador> jogadores, Jogador primeiroJogador)
+    // IMPLEMENTADO PELO ALUNO - Organiza fila circular de jogadores
+    private void OrganizaJogadores(List<MaoJogador> jogadores, Jogador primeiro)
     {
-        // TODO ALUNO: montar a fila de jogadores da rodada a partir do primeiro jogador definido.
-        throw new NotImplementedException();
+        _jogadores.Clear();
+        int idx = jogadores.FindIndex(m => m.Jogador.Id == primeiro.Id);
+        for (int i = 0; i < jogadores.Count; i++)
+            _jogadores.Enqueue(jogadores[(idx + i) % jogadores.Count]);
     }
 
-    /// <summary>
-    /// Calcula a pontuação obtida após uma jogada ser registrada, considerando o estado atual do tabuleiro e as maos dos jogadores.
-    /// </summary>
+    // IMPLEMENTADO PELO ALUNO - Calcula pontuação (regra Ponta de Quina)
     private void CalcularPontuacao()
     {
-        // TODO ALUNO: implementar a logica para calcular a pontuacao dos jogadores ao final da rodada.
-        throw new NotImplementedException();
+        if (Tabuleiro.EstaVazio) return;
+        int pontos = _placarService.CalcularPontosJogada(Tabuleiro.SomarPontasExternas());
+        if (pontos > 0)
+        {
+            var jogador = _jogadas.Peek().Jogador;
+            _partida?.Times.FirstOrDefault(t => t.PossuiJogador(jogador))?.SomarPontos(pontos);
+        }
     }
+
+    // IMPLEMENTADO PELO ALUNO - Avança para o próximo jogador (fila circular)
+    private void ProximoJogador() => _jogadores.Enqueue(_jogadores.Dequeue());
 }

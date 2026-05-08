@@ -4,38 +4,50 @@ using System.Collections.ObjectModel;
 
 namespace DominoPontaDeQuina.Core.Models;
 
-// CLASSE MODIFICADA PELO ALUNO - GRUPO 01
-// Gaps implementados: GetPontuacaoTimes(), GetTimeVencedor(), VerificaPontuacaoAlvoAtingida()
+/// <summary>
+/// Representa o nivel de partida na hierarquia Partida -> Rodadas -> Jogadas.
+/// </summary>
 public class Partida(int pontuacaoAlvo = 50) : IPartida
 {
     private Stack<Rodada> _rodadas = [];
 
+    /// <inheritdoc />
     public int PontuacaoAlvo { get; } = pontuacaoAlvo;
+
+    /// <inheritdoc />
     public StatusPartida Status { get; protected set; } = StatusPartida.NaoIniciada;
+
+    /// <inheritdoc />
     public List<Time> Times { get; } = [];
+
+    /// <inheritdoc />
     public ReadOnlyCollection<Rodada> HistoricoRodadas => _rodadas.ToList().AsReadOnly();
+
+    /// <inheritdoc />
     public Rodada? RodadaAtual => _rodadas.Count > 0 ? _rodadas.Peek() : null;
 
-    // IMPLEMENTADO PELO ALUNO - Retorna pontuação de cada time
+    /// <inheritdoc />
     public Dictionary<Time, int> GetPontuacaoTimes() =>
         Times.ToDictionary(time => time, time => time.Pontuacao);
 
-    // IMPLEMENTADO PELO ALUNO - Retorna o time vencedor (quem atingiu a pontuação alvo)
+    /// <inheritdoc />
     public Time? GetTimeVencedor() =>
         Times.FirstOrDefault(time => time.Pontuacao >= PontuacaoAlvo);
 
-    // IMPLEMENTADO PELO ALUNO - Verifica se a partida deve terminar
+    /// <inheritdoc />
     public bool VerificaPontuacaoAlvoAtingida() =>
         Times.Any(time => time.Pontuacao >= PontuacaoAlvo);
 
+    /// <inheritdoc />
     public void IniciarNovaRodada()
     {
         if (Status is StatusPartida.Finalizada)
             throw new InvalidOperationException("Não é possível iniciar uma nova rodada em uma partida finalizada.");
         Status = StatusPartida.EmAndamento;
-        _rodadas.Push(new Rodada(this)); // Passa a partida para a rodada
+        _rodadas.Push(new Rodada(this));
     }
 
+    /// <inheritdoc />
     public void FinalizarPartida()
     {
         if (Status is not StatusPartida.EmAndamento)
@@ -44,6 +56,8 @@ public class Partida(int pontuacaoAlvo = 50) : IPartida
             Status = StatusPartida.Finalizada;
     }
 
-    // Método adicionado pelo aluno - para registrar times
+    /// <summary>
+    /// Adiciona um time à partida.
+    /// </summary>
     public void AdicionarTime(Time time) => Times.Add(time);
 }

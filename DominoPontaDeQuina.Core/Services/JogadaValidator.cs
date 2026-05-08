@@ -8,24 +8,26 @@ namespace DominoPontaDeQuina.Core.Services;
 /// </summary>
 internal class JogadaValidator : IJogadaValidator
 {
+    /// <summary>
+    /// Valida se uma jogada específica é permitida no estado atual do tabuleiro.
+    /// </summary>
     public bool ValidarJogada(Jogada jogada, Tabuleiro tabuleiro, MaoJogador maoJogador)
     {
-        // CASO 1: Jogador está passando a vez → só pode se não tiver peças compatíveis
         if (jogada.EhPassarVez())
             return !PossuiPecaCompativel(maoJogador, tabuleiro);
 
-        // CASO 2: Dados inconsistentes
         if (jogada.Peca == null || jogada.Lado == null)
             return false;
 
-        // CASO 3: Jogador não possui a peça
         if (!maoJogador.PossuiPeca(jogada.Peca.Value))
             return false;
 
-        // CASO 4: Verifica compatibilidade com o tabuleiro
         return tabuleiro.PodeColar(jogada.Peca.Value, jogada.Lado.Value);
     }
 
+    /// <summary>
+    /// Verifica se o jogador possui alguma peça compatível com o estado atual do tabuleiro.
+    /// </summary>
     public bool PossuiPecaCompativel(MaoJogador maoJogador, Tabuleiro tabuleiro)
     {
         if (tabuleiro.EstaVazio)

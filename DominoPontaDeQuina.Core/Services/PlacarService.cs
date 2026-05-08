@@ -7,12 +7,15 @@ namespace DominoPontaDeQuina.Core.Services;
 /// </summary>
 internal class PlacarService : IPlacarService
 {
-    public int CalcularPontosJogada(int somaPontas)
-    {
-        // REGRA: soma múltiplo de 5 → pontos = soma/5
-        return somaPontas % 5 == 0 ? somaPontas / 5 : 0;
-    }
+    /// <summary>
+    /// Calcula os pontos obtidos em uma jogada (soma/5 quando múltiplo de 5, senão 0).
+    /// </summary>
+    public int CalcularPontosJogada(int somaPontas) =>
+        somaPontas % 5 == 0 ? somaPontas / 5 : 0;
 
+    /// <summary>
+    /// Calcula a soma total dos valores das peças na mão.
+    /// </summary>
     public int CalcularPontuacaoMao(MaoJogador mao) =>
         mao.SomarPecasNaMao();
 }

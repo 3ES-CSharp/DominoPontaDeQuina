@@ -11,7 +11,7 @@ internal interface IJogadaValidator
     /// Valida se uma jogada específica é permitida no estado atual do tabuleiro.
     /// </summary>
     bool ValidarJogada(Jogada jogada, Tabuleiro tabuleiro, MaoJogador maoJogador);
-    
+
     /// <summary>
     /// Verifica se o jogador possui alguma peça compatível com o estado atual do tabuleiro.
     /// </summary>

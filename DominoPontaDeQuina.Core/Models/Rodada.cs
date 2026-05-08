@@ -5,14 +5,7 @@ using System.Collections.ObjectModel;
 
 namespace DominoPontaDeQuina.Core.Models;
 
-// CLASSE MODIFICADA PELO ALUNO - GRUPO 01
-// Gaps implementados: 
-// - Distribuição de peças (via service)
-// - Definição do jogador inicial
-// - Controle de turno
-// - Verificação de batida e travamento
-// - Cálculo de pontuação
-// - Definição do vencedor
+/// <inheritdoc cref="IRodada"/>
 public class Rodada() : IRodada
 {
     private Stack<Jogada> _jogadas = [];
@@ -24,19 +17,31 @@ public class Rodada() : IRodada
     private List<MaoJogador> _maosJogadores = [];
     private Partida? _partida;
 
+    /// <summary>
+    /// Construtor que recebe a partida (usado para acesso aos times na pontuação).
+    /// </summary>
     public Rodada(Partida partida) : this()
     {
         _partida = partida;
         _rodadaService = new RodadaService(_placarService);
     }
 
+    /// <inheritdoc />
     public Tabuleiro Tabuleiro { get; } = new();
+
+    /// <inheritdoc />
     public ReadOnlyCollection<Jogada> HistoricoJogadas => _jogadas.ToList().AsReadOnly();
+
+    /// <inheritdoc />
     public MaoJogador JogadorAtual => _jogadores.Peek();
+
+    /// <inheritdoc />
     public StatusRodada Status { get; private set; } = StatusRodada.NaoIniciada;
+
+    /// <inheritdoc />
     public TipoFinalizacaoRodada? TipoFinalizacao { get; private set; }
 
-    // IMPLEMENTADO PELO ALUNO - Inicia a rodada (distribui peças e define quem começa)
+    /// <inheritdoc />
     public void Iniciar(ReadOnlyCollection<Jogador> jogadores, Rodada? rodadaAnterior = null)
     {
         if (jogadores == null || jogadores.Count == 0)
@@ -49,7 +54,7 @@ public class Rodada() : IRodada
         Status = StatusRodada.EmAndamento;
     }
 
-    // IMPLEMENTADO PELO ALUNO - Registra uma jogada
+    /// <inheritdoc />
     public void RegistrarJogada(Jogada jogada)
     {
         if (Status != StatusRodada.EmAndamento)
@@ -65,10 +70,10 @@ public class Rodada() : IRodada
         jogada.MarcarComoAplicada();
         _jogadas.Push(jogada);
         CalcularPontuacao();
-        ProximoJogador(); // Controle de turno
+        ProximoJogador();
     }
 
-    // IMPLEMENTADO PELO ALUNO - Verifica se alguém bateu
+    /// <inheritdoc />
     public bool VerificarBatida()
     {
         var bateu = _rodadaService.VerificarBatida(_maosJogadores);
@@ -81,7 +86,7 @@ public class Rodada() : IRodada
         return false;
     }
 
-    // IMPLEMENTADO PELO ALUNO - Verifica se o tabuleiro travou
+    /// <inheritdoc />
     public bool VerificarTabuleiroTravado()
     {
         if (_rodadaService.VerificarTabuleiroTravado(Tabuleiro, _maosJogadores, _jogadaValidator))
@@ -93,7 +98,7 @@ public class Rodada() : IRodada
         return false;
     }
 
-    // IMPLEMENTADO PELO ALUNO - Retorna o vencedor da rodada
+    /// <inheritdoc />
     public Jogador? GetVencedor()
     {
         if (Status != StatusRodada.Finalizada) return null;
@@ -101,8 +106,6 @@ public class Rodada() : IRodada
         return _rodadaService.DeterminarVencedor(_maosJogadores, TipoFinalizacao!.Value, bateu);
     }
 
-    // IMPLEMENTADO PELO ALUNO - Define quem começa a rodada
-    // 1ª rodada: quem tem a peça [6|6] | Demais: vencedor da anterior
     private Jogador GetPrimeiroJogador(List<MaoJogador> jogadores, Rodada? rodadaAnterior = null)
     {
         if (rodadaAnterior?.GetVencedor() is Jogador vencedor)
@@ -112,7 +115,6 @@ public class Rodada() : IRodada
         return comSena?.Jogador ?? jogadores.First().Jogador;
     }
 
-    // IMPLEMENTADO PELO ALUNO - Organiza fila circular de jogadores
     private void OrganizaJogadores(List<MaoJogador> jogadores, Jogador primeiro)
     {
         _jogadores.Clear();
@@ -121,7 +123,6 @@ public class Rodada() : IRodada
             _jogadores.Enqueue(jogadores[(idx + i) % jogadores.Count]);
     }
 
-    // IMPLEMENTADO PELO ALUNO - Calcula pontuação (regra Ponta de Quina)
     private void CalcularPontuacao()
     {
         if (Tabuleiro.EstaVazio) return;
@@ -133,6 +134,5 @@ public class Rodada() : IRodada
         }
     }
 
-    // IMPLEMENTADO PELO ALUNO - Avança para o próximo jogador (fila circular)
     private void ProximoJogador() => _jogadores.Enqueue(_jogadores.Dequeue());
 }

@@ -15,15 +15,24 @@ internal class RodadaService : IRodadaService
         _placarService = placarService;
     }
 
+    /// <summary>
+    /// Verifica se algum jogador bateu (ficou sem peças).
+    /// </summary>
     public Jogador? VerificarBatida(IEnumerable<MaoJogador> maosJogadores) =>
         maosJogadores.FirstOrDefault(mao => mao.EstaSemPecas())?.Jogador;
 
+    /// <summary>
+    /// Verifica se o tabuleiro está travado.
+    /// </summary>
     public bool VerificarTabuleiroTravado(Tabuleiro tabuleiro, IEnumerable<MaoJogador> maosJogadores, IJogadaValidator validator)
     {
         if (tabuleiro.EstaVazio) return false;
         return !maosJogadores.Any(mao => validator.PossuiPecaCompativel(mao, tabuleiro));
     }
 
+    /// <summary>
+    /// Determina o vencedor da rodada (batida = quem bateu; travamento = menor soma de peças).
+    /// </summary>
     public Jogador? DeterminarVencedor(IEnumerable<MaoJogador> maosJogadores, TipoFinalizacaoRodada tipo, Jogador? bateu = null)
     {
         if (tipo == TipoFinalizacaoRodada.JogadorBateu)

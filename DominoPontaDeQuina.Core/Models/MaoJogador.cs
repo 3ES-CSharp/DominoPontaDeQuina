@@ -5,37 +5,53 @@ using DominoPontaDeQuina.Core.Services;
 
 namespace DominoPontaDeQuina.Core.Models;
 
-// CLASSE MODIFICADA PELO ALUNO - GRUPO 01
-// Gaps implementados: GetJogada() e DefazerJogada()
+/// <inheritdoc cref="IMaoJogador"/>
 public class MaoJogador(Jogador jogador) : IMaoJogador
 {
     private List<Peca> _pecas = [];
     private readonly IJogadaValidator _jogadaValidator = new JogadaValidator();
 
-    // Propriedade adicionada pelo aluno - retorna cópia das peças
+    /// <summary>
+    /// Obtém uma cópia somente leitura das peças na mão do jogador.
+    /// </summary>
     public IReadOnlyList<Peca> Pecas => _pecas.AsReadOnly();
 
-    // Propriedade adicionada pelo aluno - quantidade de peças na mão
+    /// <summary>
+    /// Obtém a quantidade de peças atualmente na mão.
+    /// </summary>
     public int QuantidadePecas => _pecas.Count;
 
+    /// <inheritdoc />
     public Jogador Jogador { get; } = jogador ?? throw new ArgumentNullException(nameof(jogador));
 
+    /// <inheritdoc />
     public void AdicionarPeca(Peca peca) => _pecas.Add(peca);
+
+    /// <inheritdoc />
     public int SomarPecasNaMao() => _pecas.Sum(p => p.SomaValores);
+
+    /// <inheritdoc />
     public bool PossuiSena() => _pecas.Any(p => p.EhSena);
+
+    /// <inheritdoc />
     public bool EstaSemPecas() => _pecas.Count == 0;
 
-    // Método adicionado pelo aluno - verifica se possui uma peça específica
+    /// <summary>
+    /// Verifica se o jogador possui uma peça específica na mão.
+    /// </summary>
     public bool PossuiPeca(Peca peca) => _pecas.Contains(peca);
 
-    // Método adicionado pelo aluno - retorna cópia das peças
+    /// <summary>
+    /// Retorna uma cópia de todas as peças da mão.
+    /// </summary>
     public IEnumerable<Peca> ObterPecas() => _pecas.ToList();
 
-    // Método adicionado pelo aluno - remove peça após jogar
+    /// <summary>
+    /// Remove uma peça da mão do jogador (usado quando a peça é jogada).
+    /// </summary>
     public bool RemoverPeca(Peca peca) => _pecas.Remove(peca);
 
-    // IMPLEMENTADO PELO ALUNO - GAP: decisão da jogada
-    // Escolhe a PRIMEIRA peça compatível encontrada (estratégia simplificada)
+    /// <inheritdoc />
     public Jogada GetJogada(Tabuleiro tabuleiro)
     {
         if (_jogadaValidator.PossuiPecaCompativel(this, tabuleiro))
@@ -54,17 +70,16 @@ public class MaoJogador(Jogador jogador) : IMaoJogador
                 }
             }
         }
-        return new Jogada(Jogador); // Passa a vez
+        return new Jogada(Jogador);
     }
 
-    // Método auxiliar adicionado pelo aluno
     private int ObterValorColado(Peca peca, Tabuleiro tabuleiro, LadoTabuleiro lado)
     {
         int ponta = lado == LadoTabuleiro.Esquerda ? tabuleiro.PontaEsquerda!.Value : tabuleiro.PontaDireita!.Value;
         return peca.ValorA == ponta ? peca.ValorB : peca.ValorA;
     }
 
-    // IMPLEMENTADO PELO ALUNO - GAP: desfazer jogada (rollback)
+    /// <inheritdoc />
     public void DefazerJogada(Jogada jogada)
     {
         if (jogada.Peca.HasValue && !_pecas.Contains(jogada.Peca.Value))

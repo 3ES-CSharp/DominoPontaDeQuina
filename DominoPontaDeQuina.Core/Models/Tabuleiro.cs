@@ -3,17 +3,34 @@ using DominoPontaDeQuina.Core.Exceptions;
 
 namespace DominoPontaDeQuina.Core.Models;
 
-// CLASSE MODIFICADA PELO ALUNO - GRUPO 01
-// Gaps implementados: PodeColar(), Colar(), EstaTravado()
+/// <summary>
+/// Representa o tabuleiro no nivel da rodada dentro da hierarquia Partida -> Rodadas -> Jogadas.
+/// </summary>
 public class Tabuleiro
 {
+    /// <summary>
+    /// Lista de peças na ordem em que foram coladas. Índice 0 = ponta esquerda.
+    /// </summary>
     public List<Peca> Pecas { get; } = [];
+
+    /// <summary>
+    /// Indica se o tabuleiro ainda não possui peças coladas.
+    /// </summary>
     public bool EstaVazio => Pecas.Count == 0;
+
+    /// <summary>
+    /// Valor exposto na ponta esquerda (ValorA da primeira peça).
+    /// </summary>
     public int? PontaEsquerda => EstaVazio ? null : Pecas[0].ValorA;
+
+    /// <summary>
+    /// Valor exposto na ponta direita (ValorB da última peça).
+    /// </summary>
     public int? PontaDireita => EstaVazio ? null : Pecas[^1].ValorB;
 
-    // IMPLEMENTADO PELO ALUNO - GAP: validação de compatibilidade
-    // Verifica se a peça pode ser encaixada no lado escolhido
+    /// <summary>
+    /// Verifica se uma peça pode ser colada em um determinado lado do tabuleiro.
+    /// </summary>
     public bool PodeColar(Peca peca, LadoTabuleiro lado)
     {
         if (EstaVazio) return true;
@@ -21,8 +38,9 @@ public class Tabuleiro
         return peca.PossuiValor(ponta);
     }
 
-    // IMPLEMENTADO PELO ALUNO - GAP: posicionamento de peças
-    // Cola a peça no tabuleiro, invertendo se necessário
+    /// <summary>
+    /// Cola uma peça no tabuleiro no lado especificado.
+    /// </summary>
     public void Colar(Peca peca, LadoTabuleiro lado)
     {
         if (!PodeColar(peca, lado))
@@ -32,7 +50,6 @@ public class Tabuleiro
         if (!EstaVazio)
         {
             int ponta = lado == LadoTabuleiro.Esquerda ? PontaEsquerda!.Value : PontaDireita!.Value;
-            // Inverte a peça se o valor compatível estiver em ValorB
             if (peca.ValorB == ponta && peca.ValorA != ponta)
                 pecaParaColar = peca.Inverter();
         }
@@ -43,11 +60,15 @@ public class Tabuleiro
             Pecas.Add(pecaParaColar);
     }
 
+    /// <summary>
+    /// Soma os valores atuais das pontas externas do tabuleiro.
+    /// </summary>
     public int SomarPontasExternas() =>
         EstaVazio ? 0 : PontaEsquerda!.Value + PontaDireita!.Value;
 
-    // IMPLEMENTADO PELO ALUNO - GAP: verificação de travamento
-    // Retorna true se nenhum jogador tem peça compatível
+    /// <summary>
+    /// Verifica se o tabuleiro está travado (nenhum jogador tem peças compatíveis).
+    /// </summary>
     public bool EstaTravado(IEnumerable<MaoJogador> maosJogadores)
     {
         if (EstaVazio) return false;
@@ -58,5 +79,8 @@ public class Tabuleiro
         return true;
     }
 
+    /// <summary>
+    /// Limpa o tabuleiro para uma nova rodada.
+    /// </summary>
     public void Limpar() => Pecas.Clear();
 }

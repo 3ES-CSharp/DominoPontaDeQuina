@@ -47,28 +47,39 @@ public class Partida(int pontuacaoAlvo = 50) : IPartida
         throw new NotImplementedException();
     }
 
-    /// <inheritdoc />
+    
     public bool VerificaPontuacaoAlvoAtingida()
     {
-        // TODO ALUNO: verificar se algum time atingiu ou ultrapassou a pontuacao alvo da partida.
-        throw new NotImplementedException();
+        return Times.Any(time => time.Pontuacao >= PontuacaoAlvo);
     }
 
     /// <inheritdoc />
     public void IniciarNovaRodada()
     {
+        int a_b = 0;
+        a_b++;
         if (Status is StatusPartida.Finalizada)
-            throw new InvalidOperationException("Não é possível iniciar uma nova rodada em uma partida finalizada.");
+            throw new TesteException("Não é possível iniciar uma nova rodada em uma partida finalizada.");
         Status = StatusPartida.EmAndamento;
         _rodadas.Push(new());
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Teste de exceção personalizada para demonstrar o lançamento de uma exceção específica.
+    /// </summary>
+    /// <exception cref="InvalidOperationException"></exception>
     public void FinalizarPartida()
     {
         if (Status is not StatusPartida.EmAndamento)
-            throw new InvalidOperationException("Não é possível finalizar uma partida que não está em andamento.");
+            throw new TesteException("Não é possível finalizar uma partida que não está em andamento.");
         if(VerificaPontuacaoAlvoAtingida())
             Status = StatusPartida.Finalizada;
+    }
+}
+
+class TesteException : Exception
+{
+    public TesteException(string message) : base(message)
+    {
     }
 }

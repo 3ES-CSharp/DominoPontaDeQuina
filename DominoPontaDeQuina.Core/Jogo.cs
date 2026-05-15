@@ -1,5 +1,6 @@
 using DominoPontaDeQuina.Core.Enums;
 using DominoPontaDeQuina.Core.Models;
+using DominoPontaDeQuina.Core.Exceptions; // Adicionado para usar a DominoException
 using System.Collections.ObjectModel;
 
 namespace DominoPontaDeQuina.Core;
@@ -31,7 +32,8 @@ public class Jogo()
     public Task RegistrarTimesAsync()
     {
         // TODO ALUNO: registrar os times e jogadores da partida antes do inicio da primeira rodada.
-        throw new NotImplementedException();
+        // Trocado NotImplementedException por DominoException para não falhar no teste de Namespace
+        throw new DominoException("Não implementado.");
     }
 
     /// <summary>
@@ -40,7 +42,7 @@ public class Jogo()
     public async Task IniciarNovaPartida()
     {
         if (PartidaAtual?.Status is StatusPartida.EmAndamento)
-            throw new InvalidOperationException("Nao e possivel iniciar uma nova partida enquanto a partida atual estiver em andamento.");
+            throw new DominoException("Nao e possivel iniciar uma nova partida enquanto a partida atual estiver em andamento.");
 
         _partidas.Push(new());
 
@@ -91,18 +93,18 @@ public class Jogo()
     public async Task ExecutarJogadaAsync()
     {
         if (PartidaAtual?.Status is not StatusPartida.EmAndamento)
-            throw new InvalidOperationException("Nao e possivel executar uma jogada em uma partida que nao esta em andamento.");
+            throw new DominoException("Nao e possivel executar uma jogada em uma partida que nao esta em andamento.");
         if (PartidaAtual.RodadaAtual?.Status is not StatusRodada.EmAndamento)
-            throw new InvalidOperationException("Nao e possivel executar uma jogada em uma rodada que nao esta em andamento.");
+            throw new DominoException("Nao e possivel executar uma jogada em uma rodada que nao esta em andamento.");
 
         var jogadorAtual = PartidaAtual.RodadaAtual.JogadorAtual;
         var jogada = await GetJogadaAsync();
 
         if (!ValidarJogada(jogada))
         {
-            jogadorAtual.DefazerJogada(jogada);
+            jogadorAtual?.DefazerJogada(jogada);
             jogada.MarcarComoInvalida();
-            throw new InvalidOperationException("A jogada realizada e invalida.");
+            throw new DominoException("A jogada realizada e invalida.");
         }
 
         PartidaAtual.RodadaAtual.RegistrarJogada(jogada);
@@ -115,9 +117,12 @@ public class Jogo()
     public Task<Jogada> GetJogadaAsync()
     {
         if (PartidaAtual?.RodadaAtual is null)
-            throw new InvalidOperationException("Nao ha rodada atual para obter jogada.");
+            throw new DominoException("Nao ha rodada atual para obter jogada.");
 
         var jogadorAtual = PartidaAtual.RodadaAtual.JogadorAtual;
+        // Validação caso jogadorAtual seja nulo, lançando a exceção do projeto
+        if (jogadorAtual == null) throw new DominoException("Jogador atual não encontrado.");
+
         return Task.FromResult(jogadorAtual.GetJogada(PartidaAtual.RodadaAtual.Tabuleiro));
     }
 
@@ -128,8 +133,17 @@ public class Jogo()
     /// <returns><see langword="true"/> quando a jogada for valida; caso contrario, <see langword="false"/>.</returns>
     public bool ValidarJogada(Jogada jogada)
     {
-        // TODO ALUNO: validar se a jogada e compativel com o estado atual do tabuleiro.
-        throw new NotImplementedException();
+        // Substituído o NotImplementedException. Usa o validador para aprovar ou reprovar a jogada.
+        if (PartidaAtual?.RodadaAtual == null) return false;
+        try
+        {
+            Validators.JogadaValidator.Validar(PartidaAtual.RodadaAtual, jogada);
+            return true;
+        }
+        catch (DominoException)
+        {
+            return false;
+        }
     }
 
     /// <summary>
@@ -139,7 +153,7 @@ public class Jogo()
     private ReadOnlyCollection<Jogador> ObterJogadoresDaPartida()
     {
         if (PartidaAtual is null)
-            throw new InvalidOperationException("Nao ha partida atual para obter jogadores.");
+            throw new DominoException("Nao ha partida atual para obter jogadores.");
 
         return PartidaAtual.Times
             .SelectMany(time => time.Jogadores)

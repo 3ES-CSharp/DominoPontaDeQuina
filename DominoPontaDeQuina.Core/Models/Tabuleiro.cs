@@ -1,4 +1,5 @@
 using DominoPontaDeQuina.Core.Enums;
+using DominoPontaDeQuina.Core.Exceptions;
 
 namespace DominoPontaDeQuina.Core.Models;
 
@@ -40,8 +41,17 @@ public class Tabuleiro
     /// <returns><see langword="true"/> quando a peca puder ser colada; caso contrario, <see langword="false"/>.</returns>
     public bool PodeColar(Peca peca, LadoTabuleiro lado)
     {
-        // TODO ALUNO: validar se a peca pode ser colada no lado escolhido.
-        throw new NotImplementedException();
+        if (EstaVazio)
+        {
+            return true;
+        }
+
+        return lado switch
+        {
+            LadoTabuleiro.Esquerda => peca.PossuiValor(PontaEsquerda!.Value),
+            LadoTabuleiro.Direita => peca.PossuiValor(PontaDireita!.Value),
+            _ => false
+        };
     }
 
     /// <summary>
@@ -52,8 +62,33 @@ public class Tabuleiro
     /// <param name="lado">O lado do tabuleiro.</param>
     public void Colar(Peca peca, LadoTabuleiro lado)
     {
-        // TODO ALUNO: posicionar a peca no lado escolhido, invertendo quando necessario.
-        throw new NotImplementedException();
+        if (!PodeColar(peca, lado))
+        {
+            throw new JogadaInvalidaException($"A peça {peca} não pode ser colada na ponta {lado}.");
+        }
+
+        if (EstaVazio)
+        {
+            Pecas.Add(peca);
+            return;
+        }
+
+        if (lado == LadoTabuleiro.Esquerda)
+        {
+            if (peca.ValorB != PontaEsquerda!.Value)
+            {
+                peca = peca.Inverter();
+            }
+            Pecas.Insert(0, peca);
+        }
+        else if (lado == LadoTabuleiro.Direita)
+        {
+            if (peca.ValorA != PontaDireita!.Value)
+            {
+                peca = peca.Inverter();
+            }
+            Pecas.Add(peca);
+        }
     }
 
     /// <summary>
@@ -72,8 +107,23 @@ public class Tabuleiro
     /// <returns><see langword="true"/> quando o tabuleiro estiver travado; caso contrario, <see langword="false"/>.</returns>
     public bool EstaTravado(IEnumerable<MaoJogador> maosJogadores)
     {
-        // TODO ALUNO: implementar a regra de travamento do tabuleiro.
-        throw new NotImplementedException();
+        if (EstaVazio)
+        {
+            return false; // Um tabuleiro vazio nunca está travado
+        }
+
+        // Verifica se algum jogador possui pelo menos uma peça que possa ser colada
+        foreach (var mao in maosJogadores)
+        {
+            // O .Any() verifica se existe alguma peça na mão que sirva na esquerda ou na direita
+            if (mao.Pecas.Any(peca => PodeColar(peca, LadoTabuleiro.Esquerda) || PodeColar(peca, LadoTabuleiro.Direita)))
+            {
+                return false; // Se alguém pode jogar, o tabuleiro não está travado
+            }
+        }
+
+        // Se o laço terminar sem ninguém conseguir jogar, a mesa está oficialmente travada
+        return true;
     }
 
     /// <summary>

@@ -1,4 +1,5 @@
 using DominoPontaDeQuina.Core.Enums;
+using DominoPontaDeQuina.Core.Exceptions;
 using DominoPontaDeQuina.Core.Interfaces;
 using System.Collections.ObjectModel;
 
@@ -16,7 +17,7 @@ public class Partida(int pontuacaoAlvo = 50) : IPartida
     /// <summary>
     /// Armazena as rodadas registradas neste nivel da hierarquia.
     /// </summary>
-    Stack<Rodada> _rodadas = [];
+    private readonly Stack<Rodada> _rodadas = [];
 
     /// <inheritdoc />
     public int PontuacaoAlvo { get; } = pontuacaoAlvo;
@@ -31,44 +32,42 @@ public class Partida(int pontuacaoAlvo = 50) : IPartida
     public ReadOnlyCollection<Rodada> HistoricoRodadas => _rodadas.ToList().AsReadOnly();
 
     /// <inheritdoc />
-    public Rodada? RodadaAtual => _rodadas?.Peek();
+    public Rodada? RodadaAtual => _rodadas.TryPeek(out var atual) ? atual : null;
 
     /// <inheritdoc />
-    public Dictionary<Time, int> GetPontuacaoTimes()
-    {
-        // TODO ALUNO: calcular e retornar a pontuacao acumulada de cada time na partida.
-        throw new NotImplementedException();
-    }
+    public Dictionary<Time, int> GetPontuacaoTimes() =>
+        Times.ToDictionary(time => time, time => time.Pontuacao);
 
     /// <inheritdoc />
-    public Time? GetTimeVencedor()
-    {
-        // TODO ALUNO: determinar qual time venceu a partida com base na pontuacao alvo.
-        throw new NotImplementedException();
-    }
+    public Time? GetTimeVencedor() =>
+        Times.FirstOrDefault(time => time.Pontuacao >= PontuacaoAlvo);
 
     /// <inheritdoc />
-    public bool VerificaPontuacaoAlvoAtingida()
-    {
-        // TODO ALUNO: verificar se algum time atingiu ou ultrapassou a pontuacao alvo da partida.
-        throw new NotImplementedException();
-    }
+    public bool VerificaPontuacaoAlvoAtingida() =>
+        Times.Any(time => time.Pontuacao >= PontuacaoAlvo);
 
     /// <inheritdoc />
     public void IniciarNovaRodada()
     {
         if (Status is StatusPartida.Finalizada)
-            throw new InvalidOperationException("Não é possível iniciar uma nova rodada em uma partida finalizada.");
+            throw new PartidaFinalizadaException(
+                "Nao e possivel iniciar uma nova rodada em uma partida finalizada.");
+
         Status = StatusPartida.EmAndamento;
-        _rodadas.Push(new());
+
+        var novaRodada = new Rodada();
+        novaRodada.AssociarTimes(Times);
+        _rodadas.Push(novaRodada);
     }
 
     /// <inheritdoc />
     public void FinalizarPartida()
     {
         if (Status is not StatusPartida.EmAndamento)
-            throw new InvalidOperationException("Não é possível finalizar uma partida que não está em andamento.");
-        if(VerificaPontuacaoAlvoAtingida())
+            throw new PartidaNaoEmAndamentoException(
+                "Nao e possivel finalizar uma partida que nao esta em andamento.");
+
+        if (VerificaPontuacaoAlvoAtingida())
             Status = StatusPartida.Finalizada;
     }
 }

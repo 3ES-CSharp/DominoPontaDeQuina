@@ -1,11 +1,13 @@
 using DominoPontaDeQuina.Core.Enums;
+using DominoPontaDeQuina.Core.Exceptions;
 using DominoPontaDeQuina.Core.Interfaces;
 using System.Collections.ObjectModel;
 
 namespace DominoPontaDeQuina.Core.Models;
 
 /// <summary>
-/// Representa o nivel de partida na hierarquia Partida -> Rodadas -> Jogadas.
+/// Representa uma partida completa do jogo de dominó.
+/// Gerencia times, pontuação e rodadas.
 /// </summary>
 public class Partida(int pontuacaoAlvo = 50) : IPartida
 {
@@ -42,7 +44,7 @@ public class Partida(int pontuacaoAlvo = 50) : IPartida
     public void IniciarNovaRodada()
     {
         if (Status is StatusPartida.Finalizada)
-            throw new InvalidOperationException("Não é possível iniciar uma nova rodada em uma partida finalizada.");
+            throw new JogadaInvalidaException("Não é possível iniciar uma nova rodada em uma partida finalizada.");
         Status = StatusPartida.EmAndamento;
         _rodadas.Push(new Rodada(this));
     }
@@ -51,7 +53,7 @@ public class Partida(int pontuacaoAlvo = 50) : IPartida
     public void FinalizarPartida()
     {
         if (Status is not StatusPartida.EmAndamento)
-            throw new InvalidOperationException("Não é possível finalizar uma partida que não está em andamento.");
+            throw new JogadaInvalidaException("Não é possível finalizar uma partida que não está em andamento.");
         if (VerificaPontuacaoAlvoAtingida())
             Status = StatusPartida.Finalizada;
     }

@@ -1,15 +1,24 @@
 using DominoPontaDeQuina.Core.Enums;
-using DominoPontaDeQuina.Core.Exceptions;
 using DominoPontaDeQuina.Core.Interfaces;
 using DominoPontaDeQuina.Core.Services;
 
 namespace DominoPontaDeQuina.Core.Models;
 
-/// <inheritdoc cref="IMaoJogador"/>
-public class MaoJogador(Jogador jogador) : IMaoJogador
+/// <summary>
+/// Representa a mão de um jogador, contendo suas peças e operações sobre elas.
+/// </summary>
+public class MaoJogador : IMaoJogador
 {
     private List<Peca> _pecas = [];
     private readonly IJogadaValidator _jogadaValidator = new JogadaValidator();
+
+    /// <summary>
+    /// Construtor que recebe o jogador dono da mão.
+    /// </summary>
+    public MaoJogador(Jogador jogador)
+    {
+        Jogador = jogador ?? throw new ArgumentNullException(nameof(jogador));
+    }
 
     /// <summary>
     /// Obtém uma cópia somente leitura das peças na mão do jogador.
@@ -22,7 +31,7 @@ public class MaoJogador(Jogador jogador) : IMaoJogador
     public int QuantidadePecas => _pecas.Count;
 
     /// <inheritdoc />
-    public Jogador Jogador { get; } = jogador ?? throw new ArgumentNullException(nameof(jogador));
+    public Jogador Jogador { get; }
 
     /// <inheritdoc />
     public void AdicionarPeca(Peca peca) => _pecas.Add(peca);
@@ -54,35 +63,30 @@ public class MaoJogador(Jogador jogador) : IMaoJogador
     /// <inheritdoc />
     public Jogada GetJogada(Tabuleiro tabuleiro)
     {
-        if (_jogadaValidator.PossuiPecaCompativel(this, tabuleiro))
+        // Procura a primeira peça compatível na mão
+        for (int i = 0; i < _pecas.Count; i++)
         {
-            foreach (var peca in _pecas)
+            var peca = _pecas[i];
+            if (tabuleiro.PodeColar(peca, LadoTabuleiro.Esquerda))
             {
-                if (tabuleiro.PodeColar(peca, LadoTabuleiro.Esquerda))
-                {
-                    int valorColado = ObterValorColado(peca, tabuleiro, LadoTabuleiro.Esquerda);
-                    return new Jogada(Jogador, peca, valorColado, LadoTabuleiro.Esquerda);
-                }
-                if (tabuleiro.PodeColar(peca, LadoTabuleiro.Direita))
-                {
-                    int valorColado = ObterValorColado(peca, tabuleiro, LadoTabuleiro.Direita);
-                    return new Jogada(Jogador, peca, valorColado, LadoTabuleiro.Direita);
-                }
+                return new Jogada(Jogador, peca, null, LadoTabuleiro.Esquerda);
+            }
+            if (tabuleiro.PodeColar(peca, LadoTabuleiro.Direita))
+            {
+                return new Jogada(Jogador, peca, null, LadoTabuleiro.Direita);
             }
         }
+        // Não tem peça compatível - passa a vez
         return new Jogada(Jogador);
-    }
-
-    private int ObterValorColado(Peca peca, Tabuleiro tabuleiro, LadoTabuleiro lado)
-    {
-        int ponta = lado == LadoTabuleiro.Esquerda ? tabuleiro.PontaEsquerda!.Value : tabuleiro.PontaDireita!.Value;
-        return peca.ValorA == ponta ? peca.ValorB : peca.ValorA;
     }
 
     /// <inheritdoc />
     public void DefazerJogada(Jogada jogada)
     {
+        // Restaura a peça se ela foi removida (usado quando jogada é invalidada)
         if (jogada.Peca.HasValue && !_pecas.Contains(jogada.Peca.Value))
+        {
             _pecas.Add(jogada.Peca.Value);
+        }
     }
 }

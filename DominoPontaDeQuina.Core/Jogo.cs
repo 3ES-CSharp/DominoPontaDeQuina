@@ -1,4 +1,5 @@
 using DominoPontaDeQuina.Core.Enums;
+using DominoPontaDeQuina.Core.Exceptions;
 using DominoPontaDeQuina.Core.Models;
 using DominoPontaDeQuina.Core.Services;
 using System.Collections.ObjectModel;
@@ -6,19 +7,19 @@ using System.Collections.ObjectModel;
 namespace DominoPontaDeQuina.Core;
 
 /// <summary>
-/// Controla o fluxo principal no topo da hierarquia Partida -> Rodadas -> Jogadas.
+/// Controla o fluxo principal do jogo: partidas, rodadas e jogadas.
 /// </summary>
 public class Jogo()
 {
     private Stack<Partida> _partidas = [];
 
     /// <summary>
-    /// Obtem o historico das partidas controladas por esta instância.
+    /// Histórico de todas as partidas jogadas.
     /// </summary>
     public ReadOnlyCollection<Partida> HistoricoPartidas => _partidas.ToList().AsReadOnly();
 
     /// <summary>
-    /// Obtem a partida atual controlada pelo jogo.
+    /// Partida atualmente em andamento.
     /// </summary>
     public Partida? PartidaAtual => _partidas.TryPeek(out var p) ? p : null;
 
@@ -29,7 +30,7 @@ public class Jogo()
     public Task RegistrarTimesAsync()
     {
         if (PartidaAtual == null)
-            throw new InvalidOperationException("Não há partida ativa para registrar times.");
+            throw new JogadaInvalidaException("Não há partida ativa para registrar times.");
 
         var time1 = new Time("Time 1");
         var time2 = new Time("Time 2");
@@ -51,12 +52,12 @@ public class Jogo()
     }
 
     /// <summary>
-    /// Inicia uma nova partida e executa suas rodadas ate a finalização.
+    /// Inicia uma nova partida.
     /// </summary>
     public async Task IniciarNovaPartida()
     {
         if (PartidaAtual?.Status is StatusPartida.EmAndamento)
-            throw new InvalidOperationException("Não é possível iniciar uma nova partida enquanto a partida atual estiver em andamento.");
+            throw new JogadaInvalidaException("Não é possível iniciar uma nova partida enquanto a partida atual estiver em andamento.");
 
         _partidas.Push(new Partida());
 
@@ -82,7 +83,7 @@ public class Jogo()
     }
 
     /// <summary>
-    /// Executa o fluxo da rodada atual enquanto ela estiver em andamento.
+    /// Executa a rodada atual até sua finalização.
     /// </summary>
     public async Task ExecutarRodadaPartidaAsync()
     {
@@ -100,14 +101,14 @@ public class Jogo()
     }
 
     /// <summary>
-    /// Executa a jogada do jogador atual na rodada em andamento.
+    /// Executa uma jogada na rodada atual.
     /// </summary>
     public async Task ExecutarJogadaAsync()
     {
         if (PartidaAtual?.Status is not StatusPartida.EmAndamento)
-            throw new InvalidOperationException("Não é possível executar uma jogada em uma partida que não está em andamento.");
+            throw new JogadaInvalidaException("Não é possível executar uma jogada em uma partida que não está em andamento.");
         if (PartidaAtual.RodadaAtual?.Status is not StatusRodada.EmAndamento)
-            throw new InvalidOperationException("Não é possível executar uma jogada em uma rodada que não está em andamento.");
+            throw new JogadaInvalidaException("Não é possível executar uma jogada em uma rodada que não está em andamento.");
 
         var jogadorAtual = PartidaAtual.RodadaAtual.JogadorAtual;
         var jogada = await GetJogadaAsync();
@@ -116,26 +117,26 @@ public class Jogo()
         {
             jogadorAtual.DefazerJogada(jogada);
             jogada.MarcarComoInvalida();
-            throw new InvalidOperationException("A jogada realizada é inválida.");
+            throw new JogadaInvalidaException("A jogada realizada é inválida.");
         }
 
         PartidaAtual.RodadaAtual.RegistrarJogada(jogada);
     }
 
     /// <summary>
-    /// Obtem a jogada definida pelo jogador atual com base no estado do tabuleiro.
+    /// Obtém a jogada do jogador atual.
     /// </summary>
     public Task<Jogada> GetJogadaAsync()
     {
         if (PartidaAtual?.RodadaAtual is null)
-            throw new InvalidOperationException("Não há rodada atual para obter jogada.");
+            throw new JogadaInvalidaException("Não há rodada atual para obter jogada.");
 
         var jogadorAtual = PartidaAtual.RodadaAtual.JogadorAtual;
         return Task.FromResult(jogadorAtual.GetJogada(PartidaAtual.RodadaAtual.Tabuleiro));
     }
 
     /// <summary>
-    /// Valida a jogada no contexto da rodada atual.
+    /// Valida se uma jogada é permitida.
     /// IMPLEMENTADO PELO ALUNO
     /// </summary>
     public bool ValidarJogada(Jogada jogada)
@@ -148,7 +149,7 @@ public class Jogo()
     private ReadOnlyCollection<Jogador> ObterJogadoresDaPartida()
     {
         if (PartidaAtual is null)
-            throw new InvalidOperationException("Não há partida atual para obter jogadores.");
+            throw new JogadaInvalidaException("Não há partida atual para obter jogadores.");
 
         return PartidaAtual.Times
             .SelectMany(time => time.Jogadores)

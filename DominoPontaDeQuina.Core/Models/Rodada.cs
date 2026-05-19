@@ -1,12 +1,16 @@
 using DominoPontaDeQuina.Core.Enums;
+using DominoPontaDeQuina.Core.Exceptions;
 using DominoPontaDeQuina.Core.Interfaces;
 using DominoPontaDeQuina.Core.Services;
 using System.Collections.ObjectModel;
 
 namespace DominoPontaDeQuina.Core.Models;
 
-/// <inheritdoc cref="IRodada"/>
-public class Rodada() : IRodada
+/// <summary>
+/// Representa uma rodada do jogo de dominó.
+/// Gerencia a distribuição de peças, turnos, jogadas e finalização da rodada.
+/// </summary>
+public class Rodada : IRodada
 {
     private Stack<Jogada> _jogadas = [];
     private Queue<MaoJogador> _jogadores = [];
@@ -18,12 +22,19 @@ public class Rodada() : IRodada
     private Partida? _partida;
 
     /// <summary>
-    /// Construtor que recebe a partida (usado para acesso aos times na pontuação).
+    /// Construtor padrão. Inicializa os serviços necessários.
     /// </summary>
-    public Rodada(Partida partida) : this()
+    public Rodada()
+    {
+        _rodadaService = new RodadaService(_placarService);
+    }
+
+    /// <summary>
+    /// Construtor que recebe a partida pai.
+    /// </summary>
+    public Rodada(Partida? partida) : this()
     {
         _partida = partida;
-        _rodadaService = new RodadaService(_placarService);
     }
 
     /// <inheritdoc />
@@ -33,7 +44,7 @@ public class Rodada() : IRodada
     public ReadOnlyCollection<Jogada> HistoricoJogadas => _jogadas.ToList().AsReadOnly();
 
     /// <inheritdoc />
-    public MaoJogador JogadorAtual => _jogadores.Peek();
+    public MaoJogador JogadorAtual => _jogadores.Count > 0 ? _jogadores.Peek() : null!;
 
     /// <inheritdoc />
     public StatusRodada Status { get; private set; } = StatusRodada.NaoIniciada;
@@ -58,30 +69,38 @@ public class Rodada() : IRodada
     public void RegistrarJogada(Jogada jogada)
     {
         if (Status != StatusRodada.EmAndamento)
-            throw new InvalidOperationException("Não é possível registrar jogada em uma rodada que não está em andamento.");
+            throw new JogadaInvalidaException("Rodada não está em andamento");
 
-        if (!jogada.EhPassarVez())
+        if (jogada == null)
+            throw new JogadaInvalidaException("Jogada não pode ser nula");
+
+        if (!jogada.EhPassarVez() && jogada.Peca.HasValue && jogada.Lado.HasValue)
         {
             var maoAtual = JogadorAtual;
-            maoAtual.RemoverPeca(jogada.Peca!.Value);
-            Tabuleiro.Colar(jogada.Peca.Value, jogada.Lado!.Value);
+            if (maoAtual != null)
+            {
+                maoAtual.RemoverPeca(jogada.Peca.Value);
+                Tabuleiro.Colar(jogada.Peca.Value, jogada.Lado.Value);
+            }
         }
 
         jogada.MarcarComoAplicada();
         _jogadas.Push(jogada);
-        CalcularPontuacao();
         ProximoJogador();
     }
 
     /// <inheritdoc />
     public bool VerificarBatida()
     {
-        var bateu = _rodadaService.VerificarBatida(_maosJogadores);
-        if (bateu != null)
+        // Verifica TODOS os jogadores para ver se alguém está sem peças
+        for (int i = 0; i < _maosJogadores.Count; i++)
         {
-            TipoFinalizacao = TipoFinalizacaoRodada.JogadorBateu;
-            Status = StatusRodada.Finalizada;
-            return true;
+            if (_maosJogadores[i].EstaSemPecas())
+            {
+                TipoFinalizacao = TipoFinalizacaoRodada.JogadorBateu;
+                Status = StatusRodada.Finalizada;
+                return true;
+            }
         }
         return false;
     }
@@ -89,7 +108,7 @@ public class Rodada() : IRodada
     /// <inheritdoc />
     public bool VerificarTabuleiroTravado()
     {
-        if (_rodadaService.VerificarTabuleiroTravado(Tabuleiro, _maosJogadores, _jogadaValidator))
+        if (Tabuleiro.EstaTravado(_maosJogadores))
         {
             TipoFinalizacao = TipoFinalizacaoRodada.TabuleiroTravado;
             Status = StatusRodada.Finalizada;
@@ -102,37 +121,86 @@ public class Rodada() : IRodada
     public Jogador? GetVencedor()
     {
         if (Status != StatusRodada.Finalizada) return null;
-        var bateu = _rodadaService.VerificarBatida(_maosJogadores);
-        return _rodadaService.DeterminarVencedor(_maosJogadores, TipoFinalizacao!.Value, bateu);
+
+        if (TipoFinalizacao == TipoFinalizacaoRodada.JogadorBateu)
+        {
+            // Batida: vence quem está sem peças
+            for (int i = 0; i < _maosJogadores.Count; i++)
+            {
+                if (_maosJogadores[i].EstaSemPecas())
+                    return _maosJogadores[i].Jogador;
+            }
+        }
+        else if (TipoFinalizacao == TipoFinalizacaoRodada.TabuleiroTravado)
+        {
+            // Travamento: vence quem tem a MENOR soma das peças na mão
+            MaoJogador? menor = null;
+            for (int i = 0; i < _maosJogadores.Count; i++)
+            {
+                if (_maosJogadores[i].EstaSemPecas()) continue;
+                if (menor == null || _maosJogadores[i].SomarPecasNaMao() < menor.SomarPecasNaMao())
+                {
+                    menor = _maosJogadores[i];
+                }
+            }
+            return menor?.Jogador;
+        }
+
+        return null;
     }
 
+    /// <summary>
+    /// Define quem começa a rodada.
+    /// 1ª rodada: quem tem a peça [6|6] (sena)
+    /// Demais rodadas: o vencedor da rodada anterior
+    /// </summary>
     private Jogador GetPrimeiroJogador(List<MaoJogador> jogadores, Rodada? rodadaAnterior = null)
     {
-        if (rodadaAnterior?.GetVencedor() is Jogador vencedor)
-            return vencedor;
+        if (rodadaAnterior != null)
+        {
+            var vencedor = rodadaAnterior.GetVencedor();
+            if (vencedor != null) return vencedor;
+        }
 
-        var comSena = jogadores.FirstOrDefault(m => m.PossuiSena());
-        return comSena?.Jogador ?? jogadores.First().Jogador;
+        foreach (var mao in jogadores)
+        {
+            if (mao.PossuiSena())
+                return mao.Jogador;
+        }
+        
+        return jogadores.Count > 0 ? jogadores[0].Jogador : null!;
     }
 
+    /// <summary>
+    /// Organiza a fila de jogadores em ordem circular a partir do primeiro jogador.
+    /// </summary>
     private void OrganizaJogadores(List<MaoJogador> jogadores, Jogador primeiro)
     {
         _jogadores.Clear();
-        int idx = jogadores.FindIndex(m => m.Jogador.Id == primeiro.Id);
+        int idx = 0;
         for (int i = 0; i < jogadores.Count; i++)
-            _jogadores.Enqueue(jogadores[(idx + i) % jogadores.Count]);
-    }
-
-    private void CalcularPontuacao()
-    {
-        if (Tabuleiro.EstaVazio) return;
-        int pontos = _placarService.CalcularPontosJogada(Tabuleiro.SomarPontasExternas());
-        if (pontos > 0)
         {
-            var jogador = _jogadas.Peek().Jogador;
-            _partida?.Times.FirstOrDefault(t => t.PossuiJogador(jogador))?.SomarPontos(pontos);
+            if (jogadores[i].Jogador.Id == primeiro.Id)
+            {
+                idx = i;
+                break;
+            }
+        }
+        
+        for (int i = 0; i < jogadores.Count; i++)
+        {
+            _jogadores.Enqueue(jogadores[(idx + i) % jogadores.Count]);
         }
     }
 
-    private void ProximoJogador() => _jogadores.Enqueue(_jogadores.Dequeue());
+    /// <summary>
+    /// Avança para o próximo jogador (fila circular).
+    /// </summary>
+    private void ProximoJogador()
+    {
+        if (_jogadores.Count > 0)
+        {
+            _jogadores.Enqueue(_jogadores.Dequeue());
+        }
+    }
 }

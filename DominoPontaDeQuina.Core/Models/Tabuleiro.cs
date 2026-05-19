@@ -4,12 +4,14 @@ using DominoPontaDeQuina.Core.Exceptions;
 namespace DominoPontaDeQuina.Core.Models;
 
 /// <summary>
-/// Representa o tabuleiro no nivel da rodada dentro da hierarquia Partida -> Rodadas -> Jogadas.
+/// Representa o tabuleiro do jogo de dominó.
+/// Gerencia as peças coladas e as pontas externas.
 /// </summary>
 public class Tabuleiro
 {
     /// <summary>
-    /// Lista de peças na ordem em que foram coladas. Índice 0 = ponta esquerda.
+    /// Lista de peças na ordem em que foram coladas.
+    /// Índice 0 = ponta esquerda, último índice = ponta direita.
     /// </summary>
     public List<Peca> Pecas { get; } = [];
 
@@ -35,7 +37,7 @@ public class Tabuleiro
     {
         if (EstaVazio) return true;
         int ponta = lado == LadoTabuleiro.Esquerda ? PontaEsquerda!.Value : PontaDireita!.Value;
-        return peca.PossuiValor(ponta);
+        return peca.ValorA == ponta || peca.ValorB == ponta;
     }
 
     /// <summary>
@@ -44,14 +46,31 @@ public class Tabuleiro
     public void Colar(Peca peca, LadoTabuleiro lado)
     {
         if (!PodeColar(peca, lado))
-            throw new JogadaInvalidaException($"Não é possível colar a peça {peca} no lado {lado}.");
+            throw new JogadaInvalidaException($"Não é possível colar a peça {peca}");
 
         Peca pecaParaColar = peca;
+
         if (!EstaVazio)
         {
             int ponta = lado == LadoTabuleiro.Esquerda ? PontaEsquerda!.Value : PontaDireita!.Value;
-            if (peca.ValorB == ponta && peca.ValorA != ponta)
-                pecaParaColar = peca.Inverter();
+            
+            // CORREÇÃO: Inverte SEMPRE que o valor compatível não está na posição correta
+            if (lado == LadoTabuleiro.Esquerda)
+            {
+                // Na esquerda, queremos que o valor compatível fique em ValorB
+                if (peca.ValorA == ponta)
+                {
+                    pecaParaColar = peca.Inverter();
+                }
+            }
+            else // Direita
+            {
+                // Na direita, queremos que o valor compatível fique em ValorA
+                if (peca.ValorB == ponta)
+                {
+                    pecaParaColar = peca.Inverter();
+                }
+            }
         }
 
         if (lado == LadoTabuleiro.Esquerda)

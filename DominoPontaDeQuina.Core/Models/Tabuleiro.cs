@@ -41,7 +41,19 @@ public class Tabuleiro
     public bool PodeColar(Peca peca, LadoTabuleiro lado)
     {
         // TODO ALUNO: validar se a peca pode ser colada no lado escolhido.
-        throw new NotImplementedException();
+        if (EstaVazio)
+        {
+            return true;
+        }
+
+        if (lado == LadoTabuleiro.Esquerda)
+        {
+            return peca.PossuiValor(PontaEsquerda!.Value);
+        }
+        else // lado == LadoTabuleiro.Direita
+        {
+            return peca.PossuiValor(PontaDireita!.Value);
+        }
     }
 
     /// <summary>
@@ -53,7 +65,28 @@ public class Tabuleiro
     public void Colar(Peca peca, LadoTabuleiro lado)
     {
         // TODO ALUNO: posicionar a peca no lado escolhido, invertendo quando necessario.
-        throw new NotImplementedException();
+        if (PodeColar(peca, lado)) {
+            if (EstaVazio) 
+            {
+                Pecas.Add(peca);
+            }
+            else if (lado == LadoTabuleiro.Esquerda)
+            {
+                if (peca.ValorA == PontaEsquerda!.Value)
+                {
+                    peca = peca.Inverter();
+                }
+                Pecas.Insert(0, peca);
+            }
+            else // lado == LadoTabuleiro.Direita
+            {
+                if (peca.ValorB == PontaDireita!.Value)
+                {
+                    peca = peca.Inverter();
+                }
+                Pecas.Insert(Pecas.Count, peca);
+            }
+        }
     }
 
     /// <summary>
@@ -73,7 +106,20 @@ public class Tabuleiro
     public bool EstaTravado(IEnumerable<MaoJogador> maosJogadores)
     {
         // TODO ALUNO: implementar a regra de travamento do tabuleiro.
-        throw new NotImplementedException();
+        if (EstaVazio)
+            return false;
+        
+        foreach (var mao in maosJogadores)
+        {
+            foreach (var peca in mao.Pecas)
+            {
+                if (PodeColar(peca, LadoTabuleiro.Esquerda) || PodeColar(peca, LadoTabuleiro.Direita))
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /// <summary>

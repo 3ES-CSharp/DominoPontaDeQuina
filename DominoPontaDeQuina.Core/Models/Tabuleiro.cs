@@ -1,84 +1,74 @@
+using System.Collections.Generic;
+using System.Linq;
 using DominoPontaDeQuina.Core.Enums;
 
 namespace DominoPontaDeQuina.Core.Models;
 
-/// <summary>
-/// Representa o tabuleiro no nivel da rodada dentro da hierarquia Partida -> Rodadas -> Jogadas.
-/// Neste nivel ficam as pecas ja coladas e as informacoes necessarias para validar jogadas,
-/// calcular pontuacao pelas pontas externas e verificar situacoes de travamento.
-/// </summary>
 public class Tabuleiro
 {
-    /// <summary>
-    /// Obtem as pecas posicionadas no tabuleiro na ordem em que foram coladas.
-    /// </summary>
-    public List<Peca> Pecas { get; } = [];
+    private readonly LinkedList<Peca> _pecas = new();
 
-    /// <summary>
-    /// Indica se o tabuleiro ainda nao possui pecas coladas.
-    /// </summary>
-    public bool EstaVazio => Pecas.Count == 0;
+    public bool EstaVazio => !_pecas.Any();
 
-    /// <summary>
-    /// Obtem a ponta esquerda atualmente exposta no tabuleiro.
-    /// Quando o tabuleiro estiver vazio, nao existe ponta externa disponivel.
-    /// </summary>
-    public int? PontaEsquerda => EstaVazio ? null : Pecas[0].ValorA;
+    public int PontaEsquerda => _pecas.First!.Value.ValorA;
 
-    /// <summary>
-    /// Obtem a ponta direita atualmente exposta no tabuleiro.
-    /// Quando o tabuleiro estiver vazio, nao existe ponta externa disponivel.
-    /// </summary>
-    public int? PontaDireita => EstaVazio ? null : Pecas[^1].ValorB;
+    public int PontaDireita => _pecas.Last!.Value.ValorB;
 
-    /// <summary>
-    /// Determina se uma peca pode ser colada no lado informado.
-    /// A regra esperada e validar se a peca possui valor compativel com a ponta externa do lado escolhido.
-    /// </summary>
-    /// <param name="peca">A peca a ser verificada.</param>
-    /// <param name="lado">O lado do tabuleiro.</param>
-    /// <returns><see langword="true"/> quando a peca puder ser colada; caso contrario, <see langword="false"/>.</returns>
     public bool PodeColar(Peca peca, LadoTabuleiro lado)
     {
-        // TODO ALUNO: validar se a peca pode ser colada no lado escolhido.
-        throw new NotImplementedException();
+        if (EstaVazio)
+            return true;
+
+        return lado switch
+        {
+            LadoTabuleiro.Esquerda => peca.PossuiValor(PontaEsquerda),
+            LadoTabuleiro.Direita => peca.PossuiValor(PontaDireita),
+            _ => false
+        };
     }
 
-    /// <summary>
-    /// Cola uma peca no lado informado do tabuleiro.
-    /// A regra esperada e posicionar a peca no lado correto, invertendo seus valores quando necessario.
-    /// </summary>
-    /// <param name="peca">A peca a ser colada.</param>
-    /// <param name="lado">O lado do tabuleiro.</param>
     public void Colar(Peca peca, LadoTabuleiro lado)
     {
-        // TODO ALUNO: posicionar a peca no lado escolhido, invertendo quando necessario.
-        throw new NotImplementedException();
+        if (!PodeColar(peca, lado))
+            throw new JogadaInvalidaException("Peca invalida.");
+
+        if (EstaVazio)
+        {
+            _pecas.AddFirst(peca);
+            return;
+        }
+
+        if (lado == LadoTabuleiro.Esquerda)
+        {
+            _pecas.AddFirst(
+                peca.ValorB == PontaEsquerda ? peca : peca.Inverter());
+        }
+        else
+        {
+            _pecas.AddLast(
+                peca.ValorA == PontaDireita ? peca : peca.Inverter());
+        }
     }
 
-    /// <summary>
-    /// Soma os valores das pontas externas atualmente expostas.
-    /// Essa soma e a base para regras de pontuacao em que a rodada concede pontos quando o resultado for multiplo de 5.
-    /// </summary>
-    /// <returns>A soma das pontas externas, ou 0 quando o tabuleiro estiver vazio.</returns>
-    public int SomarPontasExternas() =>
-        EstaVazio ? 0 : PontaEsquerda!.Value + PontaDireita!.Value;
-
-    /// <summary>
-    /// Determina se o tabuleiro esta travado.
-    /// O travamento e esperado quando nenhuma mao de jogador possuir peca compativel com as pontas externas atuais.
-    /// </summary>
-    /// <param name="maosJogadores">As maos dos jogadores da rodada.</param>
-    /// <returns><see langword="true"/> quando o tabuleiro estiver travado; caso contrario, <see langword="false"/>.</returns>
-    public bool EstaTravado(IEnumerable<MaoJogador> maosJogadores)
+    public bool EstaTravado(IEnumerable<MaoJogador> maos)
     {
-        // TODO ALUNO: implementar a regra de travamento do tabuleiro.
-        throw new NotImplementedException();
+        if (EstaVazio)
+            return false;
+
+        return !maos.Any(m =>
+            m.Pecas.Any(p =>
+                PodeColar(p, LadoTabuleiro.Esquerda) ||
+                PodeColar(p, LadoTabuleiro.Direita)));
     }
 
-    /// <summary>
-    /// Limpa o tabuleiro para preparar uma nova rodada.
-    /// </summary>
-    public void Limpar() =>
-        Pecas.Clear();
+    public int SomarPontasExternas()
+    {
+        if (EstaVazio)
+            return 0;
+
+        if (_pecas.Count == 1)
+            return _pecas.First!.Value.SomaValores;
+
+        return PontaEsquerda + PontaDireita;
+    }
 }

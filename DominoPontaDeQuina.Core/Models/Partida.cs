@@ -1,5 +1,7 @@
 using DominoPontaDeQuina.Core.Enums;
 using DominoPontaDeQuina.Core.Interfaces;
+using DominoPontaDeQuina.Core.Services;
+using DominoPontaDeQuina.Core.Validators;
 using System.Collections.ObjectModel;
 
 namespace DominoPontaDeQuina.Core.Models;
@@ -33,44 +35,28 @@ public class Partida(int pontuacaoAlvo = 50) : IPartida
     /// <inheritdoc />
     public Rodada? RodadaAtual => _rodadas?.Peek();
 
-    /// <inheritdoc />
-    public Dictionary<Time, int> GetPontuacaoTimes()
-    {
-        var pontuacaoTimes = new Dictionary<Time, int>();
+    /// <summary>
+    /// Calcula a pontuacao acumulada de cada time da partida.
+    /// A consolidacao e delegada ao <see cref="PontuacaoService"/>, que centraliza as regras de pontuacao.
+    /// </summary>
+    /// <returns>Um dicionario contendo a pontuacao acumulada por time.</returns>
+    public Dictionary<Time, int> GetPontuacaoTimes() =>
+        PontuacaoService.ObterPontuacaoTimes(Times);
 
-        foreach (var time in Times)
-        {
-            pontuacaoTimes.Add(time, time.Pontuacao);
-        }
+    /// <summary>
+    /// Identifica o time vencedor da partida com base na pontuacao alvo configurada.
+    /// </summary>
+    /// <returns>O time vencedor, ou <see langword="null"/> quando ainda nao houver vencedor.</returns>
+    public Time? GetTimeVencedor() =>
+        PontuacaoService.ObterTimeVencedor(Times, PontuacaoAlvo);
 
-        return pontuacaoTimes;
-    }
-
-    /// <inheritdoc />
-    public Time? GetTimeVencedor()
-    {
-        // TODO ALUNO: determinar qual time venceu a partida com base na pontuacao alvo.
-        var pontuacaoTimes = GetPontuacaoTimes();
-
-        foreach (var time in pontuacaoTimes)
-        {
-            if (time.Value >= PontuacaoAlvo) // procura o primeiro time que atingiu ou ultrapassou a pontuacao alvo
-                return time.Key;
-        }
-        return null;
-    }
-
-    /// <inheritdoc />
-    public bool VerificaPontuacaoAlvoAtingida()
-    {
-        // TODO ALUNO: verificar se algum time atingiu ou ultrapassou a pontuacao alvo da partida.
-        foreach (var time in Times)
-        {
-            if (time.Pontuacao >= PontuacaoAlvo) // procura o primeiro time que atingiu ou ultrapassou a pontuacao alvo
-                return true;
-        }
-        return false;
-    }
+    /// <summary>
+    /// Verifica se algum time atingiu ou ultrapassou a pontuacao alvo da partida.
+    /// A verificacao e delegada ao <see cref="PartidaValidator"/>.
+    /// </summary>
+    /// <returns><see langword="true"/> quando algum time atingiu a pontuacao alvo; caso contrario, <see langword="false"/>.</returns>
+    public bool VerificaPontuacaoAlvoAtingida() =>
+        PartidaValidator.ExisteTimeVencedor(Times, PontuacaoAlvo);
 
     /// <inheritdoc />
     public void IniciarNovaRodada()

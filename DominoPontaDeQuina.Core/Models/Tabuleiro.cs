@@ -1,4 +1,6 @@
 using DominoPontaDeQuina.Core.Enums;
+using DominoPontaDeQuina.Core.Services;
+using DominoPontaDeQuina.Core.Validators;
 
 namespace DominoPontaDeQuina.Core.Models;
 
@@ -34,60 +36,28 @@ public class Tabuleiro
     /// <summary>
     /// Determina se uma peca pode ser colada no lado informado.
     /// A regra esperada e validar se a peca possui valor compativel com a ponta externa do lado escolhido.
+    /// A implementacao delega para o <see cref="TabuleiroValidator"/>, mantendo a logica de validacao
+    /// concentrada e reutilizavel.
     /// </summary>
     /// <param name="peca">A peca a ser verificada.</param>
     /// <param name="lado">O lado do tabuleiro.</param>
     /// <returns><see langword="true"/> quando a peca puder ser colada; caso contrario, <see langword="false"/>.</returns>
-    public bool PodeColar(Peca peca, LadoTabuleiro lado)
-    {
-        // TODO ALUNO: validar se a peca pode ser colada no lado escolhido.
-        if (EstaVazio)
-        {
-            return true;
-        }
-
-        if (lado == LadoTabuleiro.Esquerda)
-        {
-            return peca.PossuiValor(PontaEsquerda!.Value);
-        }
-        else // lado == LadoTabuleiro.Direita
-        {
-            return peca.PossuiValor(PontaDireita!.Value);
-        }
-    }
+    public bool PodeColar(Peca peca, LadoTabuleiro lado) =>
+        TabuleiroValidator.PodeColar(this, peca, lado);
 
     /// <summary>
     /// Cola uma peca no lado informado do tabuleiro.
     /// A regra esperada e posicionar a peca no lado correto, invertendo seus valores quando necessario.
+    /// A implementacao delega para o <see cref="JogadaService"/>, que centraliza a regra de orientacao
+    /// e levanta excecao de dominio quando o encaixe e invalido.
     /// </summary>
     /// <param name="peca">A peca a ser colada.</param>
     /// <param name="lado">O lado do tabuleiro.</param>
-    public void Colar(Peca peca, LadoTabuleiro lado)
-    {
-        // TODO ALUNO: posicionar a peca no lado escolhido, invertendo quando necessario.
-        if (PodeColar(peca, lado)) {
-            if (EstaVazio) 
-            {
-                Pecas.Add(peca);
-            }
-            else if (lado == LadoTabuleiro.Esquerda)
-            {
-                if (peca.ValorA == PontaEsquerda!.Value)
-                {
-                    peca = peca.Inverter();
-                }
-                Pecas.Insert(0, peca);
-            }
-            else // lado == LadoTabuleiro.Direita
-            {
-                if (peca.ValorB == PontaDireita!.Value)
-                {
-                    peca = peca.Inverter();
-                }
-                Pecas.Insert(Pecas.Count, peca);
-            }
-        }
-    }
+    /// <exception cref="Exceptions.JogadaInvalidaException">
+    /// Lancada quando a peca nao e compativel com a ponta do lado escolhido.
+    /// </exception>
+    public void Colar(Peca peca, LadoTabuleiro lado) =>
+        JogadaService.Colar(this, peca, lado);
 
     /// <summary>
     /// Soma os valores das pontas externas atualmente expostas.
@@ -100,27 +70,12 @@ public class Tabuleiro
     /// <summary>
     /// Determina se o tabuleiro esta travado.
     /// O travamento e esperado quando nenhuma mao de jogador possuir peca compativel com as pontas externas atuais.
+    /// A implementacao delega para o <see cref="TabuleiroValidator"/>.
     /// </summary>
     /// <param name="maosJogadores">As maos dos jogadores da rodada.</param>
     /// <returns><see langword="true"/> quando o tabuleiro estiver travado; caso contrario, <see langword="false"/>.</returns>
-    public bool EstaTravado(IEnumerable<MaoJogador> maosJogadores)
-    {
-        // TODO ALUNO: implementar a regra de travamento do tabuleiro.
-        if (EstaVazio)
-            return false;
-        
-        foreach (var mao in maosJogadores)
-        {
-            foreach (var peca in mao.Pecas)
-            {
-                if (PodeColar(peca, LadoTabuleiro.Esquerda) || PodeColar(peca, LadoTabuleiro.Direita))
-                {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
+    public bool EstaTravado(IEnumerable<MaoJogador> maosJogadores) =>
+        TabuleiroValidator.EstaTravado(this, maosJogadores);
 
     /// <summary>
     /// Limpa o tabuleiro para preparar uma nova rodada.

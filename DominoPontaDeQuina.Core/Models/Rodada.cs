@@ -8,7 +8,6 @@ namespace DominoPontaDeQuina.Core.Models;
 
 /// <summary>
 /// Representa uma rodada do jogo de dominó.
-/// Gerencia a distribuição de peças, turnos, jogadas e finalização da rodada.
 /// </summary>
 public class Rodada : IRodada
 {
@@ -22,7 +21,7 @@ public class Rodada : IRodada
     private Partida? _partida;
 
     /// <summary>
-    /// Construtor padrão. Inicializa os serviços necessários.
+    /// Construtor padrão.
     /// </summary>
     public Rodada()
     {
@@ -30,7 +29,7 @@ public class Rodada : IRodada
     }
 
     /// <summary>
-    /// Construtor que recebe a partida pai.
+    /// Construtor que recebe a partida.
     /// </summary>
     public Rodada(Partida? partida) : this()
     {
@@ -92,7 +91,15 @@ public class Rodada : IRodada
     /// <inheritdoc />
     public bool VerificarBatida()
     {
-        // Verifica TODOS os jogadores para ver se alguém está sem peças
+        // Verifica se o jogador atual está sem peças
+        if (JogadorAtual != null && JogadorAtual.EstaSemPecas())
+        {
+            TipoFinalizacao = TipoFinalizacaoRodada.JogadorBateu;
+            Status = StatusRodada.Finalizada;
+            return true;
+        }
+        
+        // Verifica todos os jogadores
         for (int i = 0; i < _maosJogadores.Count; i++)
         {
             if (_maosJogadores[i].EstaSemPecas())
@@ -124,16 +131,19 @@ public class Rodada : IRodada
 
         if (TipoFinalizacao == TipoFinalizacaoRodada.JogadorBateu)
         {
-            // Batida: vence quem está sem peças
+            // Batida: retorna o jogador que está sem peças
             for (int i = 0; i < _maosJogadores.Count; i++)
             {
                 if (_maosJogadores[i].EstaSemPecas())
                     return _maosJogadores[i].Jogador;
             }
+            // Fallback para o jogador atual
+            if (JogadorAtual != null && JogadorAtual.EstaSemPecas())
+                return JogadorAtual.Jogador;
         }
         else if (TipoFinalizacao == TipoFinalizacaoRodada.TabuleiroTravado)
         {
-            // Travamento: vence quem tem a MENOR soma das peças na mão
+            // Travamento: retorna o jogador com a MENOR soma de peças
             MaoJogador? menor = null;
             for (int i = 0; i < _maosJogadores.Count; i++)
             {
@@ -151,8 +161,6 @@ public class Rodada : IRodada
 
     /// <summary>
     /// Define quem começa a rodada.
-    /// 1ª rodada: quem tem a peça [6|6] (sena)
-    /// Demais rodadas: o vencedor da rodada anterior
     /// </summary>
     private Jogador GetPrimeiroJogador(List<MaoJogador> jogadores, Rodada? rodadaAnterior = null)
     {
@@ -172,7 +180,7 @@ public class Rodada : IRodada
     }
 
     /// <summary>
-    /// Organiza a fila de jogadores em ordem circular a partir do primeiro jogador.
+    /// Organiza a fila de jogadores.
     /// </summary>
     private void OrganizaJogadores(List<MaoJogador> jogadores, Jogador primeiro)
     {
@@ -194,7 +202,7 @@ public class Rodada : IRodada
     }
 
     /// <summary>
-    /// Avança para o próximo jogador (fila circular).
+    /// Avança para o próximo jogador.
     /// </summary>
     private void ProximoJogador()
     {

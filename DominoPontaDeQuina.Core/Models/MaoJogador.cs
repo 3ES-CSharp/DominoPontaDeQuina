@@ -56,23 +56,28 @@ public class MaoJogador : IMaoJogador
     public IEnumerable<Peca> ObterPecas() => _pecas.ToList();
 
     /// <summary>
-    /// Remove uma peça da mão do jogador (usado quando a peça é jogada).
+    /// Remove uma peça da mão do jogador.
     /// </summary>
-    public bool RemoverPeca(Peca peca) => _pecas.Remove(peca);
+    public bool RemoverPeca(Peca peca)
+    {
+        return _pecas.Remove(peca);
+    }
 
     /// <inheritdoc />
     public Jogada GetJogada(Tabuleiro tabuleiro)
     {
-        // Procura a primeira peça compatível na mão
+        // Procura a primeira peça compatível e a remove da mão
         for (int i = 0; i < _pecas.Count; i++)
         {
             var peca = _pecas[i];
             if (tabuleiro.PodeColar(peca, LadoTabuleiro.Esquerda))
             {
+                _pecas.RemoveAt(i);
                 return new Jogada(Jogador, peca, null, LadoTabuleiro.Esquerda);
             }
             if (tabuleiro.PodeColar(peca, LadoTabuleiro.Direita))
             {
+                _pecas.RemoveAt(i);
                 return new Jogada(Jogador, peca, null, LadoTabuleiro.Direita);
             }
         }
@@ -83,10 +88,10 @@ public class MaoJogador : IMaoJogador
     /// <inheritdoc />
     public void DefazerJogada(Jogada jogada)
     {
-        // Restaura a peça se ela foi removida (usado quando jogada é invalidada)
+        // Restaura a peça se ela foi removida
         if (jogada.Peca.HasValue && !_pecas.Contains(jogada.Peca.Value))
         {
             _pecas.Add(jogada.Peca.Value);
         }
     }
-}
+}   

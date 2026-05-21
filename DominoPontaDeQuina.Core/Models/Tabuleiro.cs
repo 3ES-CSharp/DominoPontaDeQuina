@@ -5,33 +5,31 @@ namespace DominoPontaDeQuina.Core.Models;
 
 /// <summary>
 /// Representa o tabuleiro do jogo de dominó.
-/// Gerencia as peças coladas e as pontas externas.
 /// </summary>
 public class Tabuleiro
 {
     /// <summary>
     /// Lista de peças na ordem em que foram coladas.
-    /// Índice 0 = ponta esquerda, último índice = ponta direita.
     /// </summary>
     public List<Peca> Pecas { get; } = [];
 
     /// <summary>
-    /// Indica se o tabuleiro ainda não possui peças coladas.
+    /// Indica se o tabuleiro está vazio.
     /// </summary>
     public bool EstaVazio => Pecas.Count == 0;
 
     /// <summary>
-    /// Valor exposto na ponta esquerda (ValorA da primeira peça).
+    /// Valor exposto na ponta esquerda.
     /// </summary>
     public int? PontaEsquerda => EstaVazio ? null : Pecas[0].ValorA;
 
     /// <summary>
-    /// Valor exposto na ponta direita (ValorB da última peça).
+    /// Valor exposto na ponta direita.
     /// </summary>
     public int? PontaDireita => EstaVazio ? null : Pecas[^1].ValorB;
 
     /// <summary>
-    /// Verifica se uma peça pode ser colada em um determinado lado do tabuleiro.
+    /// Verifica se uma peça pode ser colada em um determinado lado.
     /// </summary>
     public bool PodeColar(Peca peca, LadoTabuleiro lado)
     {
@@ -41,7 +39,7 @@ public class Tabuleiro
     }
 
     /// <summary>
-    /// Cola uma peça no tabuleiro no lado especificado.
+    /// Cola uma peça no tabuleiro.
     /// </summary>
     public void Colar(Peca peca, LadoTabuleiro lado)
     {
@@ -54,22 +52,10 @@ public class Tabuleiro
         {
             int ponta = lado == LadoTabuleiro.Esquerda ? PontaEsquerda!.Value : PontaDireita!.Value;
             
-            // CORREÇÃO: Inverte SEMPRE que o valor compatível não está na posição correta
-            if (lado == LadoTabuleiro.Esquerda)
+            // Inverte se o valor compatível está em ValorB
+            if (peca.ValorB == ponta)
             {
-                // Na esquerda, queremos que o valor compatível fique em ValorB
-                if (peca.ValorA == ponta)
-                {
-                    pecaParaColar = peca.Inverter();
-                }
-            }
-            else // Direita
-            {
-                // Na direita, queremos que o valor compatível fique em ValorA
-                if (peca.ValorB == ponta)
-                {
-                    pecaParaColar = peca.Inverter();
-                }
+                pecaParaColar = peca.Inverter();
             }
         }
 
@@ -80,13 +66,13 @@ public class Tabuleiro
     }
 
     /// <summary>
-    /// Soma os valores atuais das pontas externas do tabuleiro.
+    /// Soma os valores das pontas externas.
     /// </summary>
     public int SomarPontasExternas() =>
         EstaVazio ? 0 : PontaEsquerda!.Value + PontaDireita!.Value;
 
     /// <summary>
-    /// Verifica se o tabuleiro está travado (nenhum jogador tem peças compatíveis).
+    /// Verifica se o tabuleiro está travado.
     /// </summary>
     public bool EstaTravado(IEnumerable<MaoJogador> maosJogadores)
     {
@@ -99,7 +85,7 @@ public class Tabuleiro
     }
 
     /// <summary>
-    /// Limpa o tabuleiro para uma nova rodada.
+    /// Limpa o tabuleiro.
     /// </summary>
     public void Limpar() => Pecas.Clear();
 }

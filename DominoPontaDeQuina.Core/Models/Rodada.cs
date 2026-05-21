@@ -32,7 +32,7 @@ public class Rodada() : IRodada
     /// <summary>
     /// Obtém a mão do jogador que detém o turno atual para jogar.
     /// </summary>
-    public MaoJogador? JogadorAtual => _jogadores.Count > 0 ? _jogadores.Peek() : null;
+    public MaoJogador JogadorAtual => _jogadores.Count > 0 ? _jogadores.Peek() : null!;
 
     /// <summary>
     /// Obtém o status da rodada.
@@ -73,7 +73,8 @@ public class Rodada() : IRodada
 
         if (!jogada.EhPassarVez())
         {
-            JogadorAtual?.RemoverPeca(jogada.Peca!.Value);
+            // CORREÇÃO AQUI: Removida a interrogação que conflitava com a assinatura não-nula
+            JogadorAtual.RemoverPeca(jogada.Peca!.Value);
             Tabuleiro.Colar(jogada.Peca!.Value, jogada.Lado!.Value);
         }
 

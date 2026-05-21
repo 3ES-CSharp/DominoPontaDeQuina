@@ -6,9 +6,8 @@ namespace DominoPontaDeQuina.Core.Models;
 /// <inheritdoc cref="IJogada"/>
 /// <param name="jogador">O jogador da jogada.</param>
 /// <param name="peca">A peca jogada, quando houver.</param>
-/// <param name="valorColado">O valor colado na jogada, quando houver.</param>
 /// <param name="lado">O lado escolhido, quando houver.</param>
-public class Jogada(Jogador jogador, Peca? peca = null, int? valorColado = null, LadoTabuleiro? lado = null) : IJogada
+public class Jogada(Jogador jogador, Peca? peca = null, LadoTabuleiro? lado = null) : IJogada
 {
     /// <inheritdoc />
     public Jogador Jogador { get; } = jogador;

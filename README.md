@@ -14,6 +14,8 @@
 | Henrique Azevedo Monte Pires | RM556707 |
 | Isadora de Morais Meneghetti | RM556326 |
 | Gustavo Jun Irizawa Ikeda | RM554718 |
+| Renato Luiz Cordão | RM556403 |
+| Vitor couto | RM554965 |
 
 ---
 

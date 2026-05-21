@@ -25,7 +25,6 @@ public class Jogo()
 
     /// <summary>
     /// Registra os times da partida atual.
-    /// IMPLEMENTADO PELO ALUNO
     /// </summary>
     public Task RegistrarTimesAsync()
     {
@@ -137,7 +136,6 @@ public class Jogo()
 
     /// <summary>
     /// Valida se uma jogada é permitida.
-    /// IMPLEMENTADO PELO ALUNO
     /// </summary>
     public bool ValidarJogada(Jogada jogada)
     {

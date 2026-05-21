@@ -5,32 +5,37 @@ namespace DominoPontaDeQuina.Core.Models;
 
 /// <summary>
 /// Representa o tabuleiro do jogo de dominó.
+/// Gerencia as peças coladas e as pontas externas.
 /// </summary>
 public class Tabuleiro
 {
     /// <summary>
     /// Lista de peças na ordem em que foram coladas.
+    /// Índice 0 = ponta esquerda, último índice = ponta direita.
     /// </summary>
     public List<Peca> Pecas { get; } = [];
 
     /// <summary>
-    /// Indica se o tabuleiro está vazio.
+    /// Indica se o tabuleiro ainda não possui peças coladas.
     /// </summary>
     public bool EstaVazio => Pecas.Count == 0;
 
     /// <summary>
-    /// Valor exposto na ponta esquerda.
+    /// Valor exposto na ponta esquerda (ValorA da primeira peça).
     /// </summary>
     public int? PontaEsquerda => EstaVazio ? null : Pecas[0].ValorA;
 
     /// <summary>
-    /// Valor exposto na ponta direita.
+    /// Valor exposto na ponta direita (ValorB da última peça).
     /// </summary>
     public int? PontaDireita => EstaVazio ? null : Pecas[^1].ValorB;
 
     /// <summary>
-    /// Verifica se uma peça pode ser colada em um determinado lado.
+    /// Verifica se uma peça pode ser colada em um determinado lado do tabuleiro.
     /// </summary>
+    /// <param name="peca">Peça a ser verificada.</param>
+    /// <param name="lado">Lado onde se deseja colar.</param>
+    /// <returns>True se a peça pode ser colada, False caso contrário.</returns>
     public bool PodeColar(Peca peca, LadoTabuleiro lado)
     {
         if (EstaVazio) return true;
@@ -39,8 +44,11 @@ public class Tabuleiro
     }
 
     /// <summary>
-    /// Cola uma peça no tabuleiro.
+    /// Cola uma peça no tabuleiro no lado especificado.
     /// </summary>
+    /// <param name="peca">Peça a ser colada.</param>
+    /// <param name="lado">Lado onde colar.</param>
+    /// <exception cref="JogadaInvalidaException">Lançada quando a peça não pode ser colada.</exception>
     public void Colar(Peca peca, LadoTabuleiro lado)
     {
         if (!PodeColar(peca, lado))
@@ -52,10 +60,20 @@ public class Tabuleiro
         {
             int ponta = lado == LadoTabuleiro.Esquerda ? PontaEsquerda!.Value : PontaDireita!.Value;
             
-            // Inverte se o valor compatível está em ValorB
-            if (peca.ValorB == ponta)
+            // Inverte a peça se necessário para manter a consistência das pontas
+            if (lado == LadoTabuleiro.Esquerda)
             {
-                pecaParaColar = peca.Inverter();
+                if (peca.ValorA == ponta)
+                {
+                    pecaParaColar = peca.Inverter();
+                }
+            }
+            else // Direita
+            {
+                if (peca.ValorB == ponta)
+                {
+                    pecaParaColar = peca.Inverter();
+                }
             }
         }
 
@@ -66,14 +84,17 @@ public class Tabuleiro
     }
 
     /// <summary>
-    /// Soma os valores das pontas externas.
+    /// Soma os valores atuais das pontas externas do tabuleiro.
     /// </summary>
+    /// <returns>Soma das pontas esquerda e direita, ou 0 se vazio.</returns>
     public int SomarPontasExternas() =>
         EstaVazio ? 0 : PontaEsquerda!.Value + PontaDireita!.Value;
 
     /// <summary>
     /// Verifica se o tabuleiro está travado.
     /// </summary>
+    /// <param name="maosJogadores">Lista de todas as mãos dos jogadores.</param>
+    /// <returns>True se nenhum jogador tem peças compatíveis.</returns>
     public bool EstaTravado(IEnumerable<MaoJogador> maosJogadores)
     {
         if (EstaVazio) return false;
@@ -85,7 +106,7 @@ public class Tabuleiro
     }
 
     /// <summary>
-    /// Limpa o tabuleiro.
+    /// Limpa o tabuleiro para uma nova rodada.
     /// </summary>
     public void Limpar() => Pecas.Clear();
 }

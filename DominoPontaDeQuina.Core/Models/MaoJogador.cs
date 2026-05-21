@@ -15,6 +15,7 @@ public class MaoJogador : IMaoJogador
     /// <summary>
     /// Construtor que recebe o jogador dono da mão.
     /// </summary>
+    /// <param name="jogador">Jogador proprietário desta mão.</param>
     public MaoJogador(Jogador jogador)
     {
         Jogador = jogador ?? throw new ArgumentNullException(nameof(jogador));
@@ -48,25 +49,33 @@ public class MaoJogador : IMaoJogador
     /// <summary>
     /// Verifica se o jogador possui uma peça específica na mão.
     /// </summary>
+    /// <param name="peca">Peça a ser verificada.</param>
+    /// <returns>True se a peça estiver na mão.</returns>
     public bool PossuiPeca(Peca peca) => _pecas.Contains(peca);
 
     /// <summary>
     /// Retorna uma cópia de todas as peças da mão.
     /// </summary>
+    /// <returns>Coleção enumerável das peças.</returns>
     public IEnumerable<Peca> ObterPecas() => _pecas.ToList();
 
     /// <summary>
     /// Remove uma peça da mão do jogador.
     /// </summary>
+    /// <param name="peca">Peça a ser removida.</param>
+    /// <returns>True se a peça foi removida com sucesso.</returns>
     public bool RemoverPeca(Peca peca)
     {
         return _pecas.Remove(peca);
     }
 
     /// <inheritdoc />
+    /// <summary>
+    /// Escolhe a primeira peça compatível com o tabuleiro.
+    /// Se não houver peças compatíveis, retorna uma jogada de "passar vez".
+    /// </summary>
     public Jogada GetJogada(Tabuleiro tabuleiro)
     {
-        // Procura a primeira peça compatível e a remove da mão
         for (int i = 0; i < _pecas.Count; i++)
         {
             var peca = _pecas[i];
@@ -81,17 +90,19 @@ public class MaoJogador : IMaoJogador
                 return new Jogada(Jogador, peca, null, LadoTabuleiro.Direita);
             }
         }
-        // Não tem peça compatível - passa a vez
         return new Jogada(Jogador);
     }
 
     /// <inheritdoc />
+    /// <summary>
+    /// Restaura a mão do jogador ao estado anterior à jogada.
+    /// Usado quando uma jogada é invalidada.
+    /// </summary>
     public void DefazerJogada(Jogada jogada)
     {
-        // Restaura a peça se ela foi removida
         if (jogada.Peca.HasValue && !_pecas.Contains(jogada.Peca.Value))
         {
             _pecas.Add(jogada.Peca.Value);
         }
     }
-}   
+}

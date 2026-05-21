@@ -61,5 +61,6 @@ public class Partida(int pontuacaoAlvo = 50) : IPartida
     /// <summary>
     /// Adiciona um time à partida.
     /// </summary>
+    /// <param name="time">Time a ser adicionado.</param>
     public void AdicionarTime(Time time) => Times.Add(time);
 }

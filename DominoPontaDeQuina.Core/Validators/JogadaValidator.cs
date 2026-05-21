@@ -3,18 +3,24 @@ using DominoPontaDeQuina.Core.Models;
 
 namespace DominoPontaDeQuina.Core.Validators;
 
+/// <summary>
+/// Classe responsável por validar as regras de negócio de uma jogada.
+/// </summary>
 public static class JogadaValidator
 {
+    /// <summary>
+    /// Valida se a jogada fornecida pode ser executada na rodada atual.
+    /// </summary>
+    /// <param name="rodada">A rodada que está em andamento.</param>
+    /// <param name="jogada">A tentativa de jogada efetuada pelo jogador.</param>
     public static void Validar(Rodada rodada, Jogada jogada)
     {
-        // Substituído ArgumentNullException por DominoException
         if (rodada == null) throw new DominoException("A rodada não pode ser nula.");
         if (jogada == null) throw new DominoException("A jogada não pode ser nula.");
 
         if (rodada.Status != Enums.StatusRodada.EmAndamento)
             throw new JogadaInvalidaException("A rodada não está em andamento.");
 
-        // Comparação estrita pelo NOME do jogador para evitar conflitos de instâncias nos testes
         if (rodada.JogadorAtual != null && rodada.JogadorAtual.Jogador.Nome != jogada.Jogador.Nome)
             throw new JogadaInvalidaException($"Não é a vez do jogador {jogada.Jogador.Nome}.");
 

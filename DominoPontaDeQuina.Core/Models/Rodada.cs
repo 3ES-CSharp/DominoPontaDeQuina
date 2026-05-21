@@ -5,20 +5,50 @@ using System.Collections.ObjectModel;
 
 namespace DominoPontaDeQuina.Core.Models;
 
+/// <summary>
+/// Classe que controla o andamento, as peças e os jogadores de uma rodada específica.
+/// </summary>
 public class Rodada() : IRodada
 {
     private Stack<Jogada> Jogadas { get; } = [];
+
+    /// <summary>
+    /// Obtém o tabuleiro da rodada atual.
+    /// </summary>
     public Tabuleiro Tabuleiro { get; } = new();
+
     private Queue<MaoJogador> _jogadores = [];
+
+    /// <summary>
+    /// Obtém o dicionário com as pontuações individuais dos jogadores na rodada.
+    /// </summary>
     public Dictionary<Jogador, int> Pontuacoes { get; } = new();
 
+    /// <summary>
+    /// Obtém o histórico completo em modo leitura de jogadas realizadas.
+    /// </summary>
     public ReadOnlyCollection<Jogada> HistoricoJogadas => Jogadas.ToList().AsReadOnly();
 
+    /// <summary>
+    /// Obtém a mão do jogador que detém o turno atual para jogar.
+    /// </summary>
     public MaoJogador? JogadorAtual => _jogadores.Count > 0 ? _jogadores.Peek() : null;
 
+    /// <summary>
+    /// Obtém o status da rodada.
+    /// </summary>
     public StatusRodada Status { get; private set; } = StatusRodada.NaoIniciada;
+
+    /// <summary>
+    /// Obtém o tipo de finalização da rodada, preenchido apenas caso ela já tenha sido encerrada.
+    /// </summary>
     public TipoFinalizacaoRodada? TipoFinalizacao { get; private set; }
 
+    /// <summary>
+    /// Inicia a rodada distribuindo as peças para a lista de jogadores.
+    /// </summary>
+    /// <param name="jogadores">Jogadores participantes da rodada.</param>
+    /// <param name="anterior">Referência para a rodada anterior, se houver.</param>
     public void Iniciar(ReadOnlyCollection<Jogador> jogadores, Rodada? anterior = null)
     {
         if (jogadores == null || jogadores.Count == 0) throw new DominoException("Jogadores inválidos.");
@@ -30,6 +60,10 @@ public class Rodada() : IRodada
         Status = StatusRodada.EmAndamento;
     }
 
+    /// <summary>
+    /// Registra e aplica no tabuleiro a jogada efetuada pelo jogador atual.
+    /// </summary>
+    /// <param name="jogada">A jogada validada a ser registrada.</param>
     public void RegistrarJogada(Jogada jogada)
     {
         if (jogada == null) throw new DominoException("A jogada não pode ser nula.");
@@ -47,7 +81,6 @@ public class Rodada() : IRodada
         Jogadas.Push(jogada);
         CalcularPontuacao();
 
-        // Como Jogo.cs já chama VerificarBatida(), apenas repassamos o turno se o jogo seguir
         if (_jogadores.Count > 0)
         {
             var j = _jogadores.Dequeue();
@@ -55,19 +88,25 @@ public class Rodada() : IRodada
         }
     }
 
+    /// <summary>
+    /// Analisa as mãos dos jogadores para verificar se ocorreu uma batida na rodada.
+    /// </summary>
+    /// <returns>Verdadeiro caso algum jogador esteja sem peças.</returns>
     public bool VerificarBatida()
     {
         bool bateu = _jogadores.Count > 0 && _jogadores.Any(m => m.EstaSemPecas());
-        // CORREÇÃO: O próprio método agora altera o status, como o teste exige
         if (bateu && Status == StatusRodada.EmAndamento)
             Finalizar(TipoFinalizacaoRodada.JogadorBateu);
         return bateu;
     }
 
+    /// <summary>
+    /// Analisa o tabuleiro e as mãos para verificar se o jogo ficou travado.
+    /// </summary>
+    /// <returns>Verdadeiro caso nenhum jogador tenha peças válidas para as pontas.</returns>
     public bool VerificarTabuleiroTravado()
     {
         bool travado = !Tabuleiro.EstaVazio && _jogadores.Count > 0 && Tabuleiro.EstaTravado(_jogadores);
-        // CORREÇÃO: O próprio método agora altera o status, como o teste exige
         if (travado && Status == StatusRodada.EmAndamento)
             Finalizar(TipoFinalizacaoRodada.TabuleiroTravado);
         return travado;
@@ -88,13 +127,15 @@ public class Rodada() : IRodada
         }
     }
 
+    /// <summary>
+    /// Avalia e retorna o vencedor da rodada.
+    /// </summary>
+    /// <returns>Objeto do jogador que venceu a rodada ou nulo em caso de empate persistente.</returns>
     public Jogador? GetVencedor()
     {
-        // Se bateu, o vencedor é quem está sem peças
         if (_jogadores.Count > 0 && _jogadores.Any(m => m.EstaSemPecas()))
             return _jogadores.First(m => m.EstaSemPecas()).Jogador;
 
-        // Se travou, vence quem tem menos pontos na mão
         if (!Tabuleiro.EstaVazio && _jogadores.Count > 0 && Tabuleiro.EstaTravado(_jogadores))
             return _jogadores.OrderBy(m => m.SomarPecasNaMao()).First().Jogador;
 

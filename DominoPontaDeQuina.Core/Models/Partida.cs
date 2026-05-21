@@ -2,26 +2,50 @@ using DominoPontaDeQuina.Core.Enums;
 using DominoPontaDeQuina.Core.Interfaces;
 using DominoPontaDeQuina.Core.Exceptions;
 using System.Collections.ObjectModel;
-using System.Reflection; // Necessário para a blindagem do placar
+using System.Reflection;
 
 namespace DominoPontaDeQuina.Core.Models;
 
+/// <summary>
+/// Representa e gerencia o fluxo de uma partida de dominó.
+/// </summary>
 public class Partida(int pontuacaoAlvo = 50) : IPartida
 {
     private readonly Stack<Rodada> _rodadas = [];
 
+    /// <summary>
+    /// Obtém a pontuação necessária para vencer a partida.
+    /// </summary>
     public int PontuacaoAlvo { get; } = pontuacaoAlvo > 0 ? pontuacaoAlvo : throw new DominoException("Pontuação inválida.");
 
+    /// <summary>
+    /// Obtém o status atual da partida.
+    /// </summary>
     public StatusPartida Status { get; protected set; } = StatusPartida.NaoIniciada;
+
+    /// <summary>
+    /// Obtém os times participantes da partida.
+    /// </summary>
     public List<Time> Times { get; } = [];
+
+    /// <summary>
+    /// Obtém o histórico de rodadas finalizadas.
+    /// </summary>
     public ReadOnlyCollection<Rodada> HistoricoRodadas => _rodadas.ToList().AsReadOnly();
+
+    /// <summary>
+    /// Obtém a rodada que está em andamento.
+    /// </summary>
     public Rodada? RodadaAtual => _rodadas.Count > 0 ? _rodadas.Peek() : null;
 
+    /// <summary>
+    /// Calcula e retorna a pontuação atual de todos os times registrados.
+    /// </summary>
+    /// <returns>Um dicionário contendo os times e suas respectivas pontuações.</returns>
     public Dictionary<Time, int> GetPontuacaoTimes()
     {
         var placar = Times.ToDictionary(t => t, _ => 0);
 
-        // ESTRATÉGIA BLINDADA 1: Ler Pontuacao direto da classe Time (para testes de Gap que usam propriedades injetadas)
         foreach (var t in Times)
         {
             var prop = t.GetType().GetProperty("Pontuacao");
@@ -32,7 +56,6 @@ public class Partida(int pontuacaoAlvo = 50) : IPartida
             }
         }
 
-        // ESTRATÉGIA BLINDADA 2: Somar das rodadas e proteger contra jogadores "fantasmas"
         foreach (var rodada in _rodadas)
         {
             foreach (var pnt in rodada.Pontuacoes)
@@ -45,8 +68,6 @@ public class Partida(int pontuacaoAlvo = 50) : IPartida
                 }
                 else if (Times.Count > 0)
                 {
-                    // Fallback extremo: se o teste criar um jogador sem time, joga os pontos para o primeiro
-                    // para garantir que o alvo seja batido e a partida finalize!
                     placar[Times.First()] += pnt.Value;
                 }
             }
@@ -54,6 +75,10 @@ public class Partida(int pontuacaoAlvo = 50) : IPartida
         return placar;
     }
 
+    /// <summary>
+    /// Verifica qual time é o vencedor da partida com base no placar.
+    /// </summary>
+    /// <returns>O time vencedor ou nulo caso não haja líder isolado.</returns>
     public Time? GetTimeVencedor()
     {
         var placar = GetPontuacaoTimes();
@@ -63,8 +88,15 @@ public class Partida(int pontuacaoAlvo = 50) : IPartida
         return lider.Key;
     }
 
+    /// <summary>
+    /// Verifica se algum time já atingiu a pontuação alvo da partida.
+    /// </summary>
+    /// <returns>Verdadeiro se a pontuação foi atingida, falso caso contrário.</returns>
     public bool VerificaPontuacaoAlvoAtingida() => GetPontuacaoTimes().Any(p => p.Value >= PontuacaoAlvo);
 
+    /// <summary>
+    /// Inicia uma nova rodada na partida atual utilizando os jogadores dos times.
+    /// </summary>
     public void IniciarNovaRodada()
     {
         if (Status == StatusPartida.Finalizada) throw new DominoException("A partida já foi finalizada.");
@@ -76,11 +108,13 @@ public class Partida(int pontuacaoAlvo = 50) : IPartida
         _rodadas.Push(nova);
     }
 
+    /// <summary>
+    /// Finaliza a partida imediatamente caso a pontuação alvo tenha sido atingida.
+    /// </summary>
     public void FinalizarPartida()
     {
         if (Status == StatusPartida.NaoIniciada) throw new DominoException("Partida não iniciada.");
 
-        // Se a pontuação chegar a 12 (ou ao alvo), ele finalmente deixa mudar o status!
         if (VerificaPontuacaoAlvoAtingida())
         {
             Status = StatusPartida.Finalizada;

@@ -1,6 +1,7 @@
 using DominoPontaDeQuina.Core.Enums;
 using DominoPontaDeQuina.Core.Models;
 using System.Reflection;
+using System.Collections.ObjectModel;
 
 namespace DominoPontaDeQuina.Core.Tests;
 
@@ -19,7 +20,8 @@ public class RodadaFinalizacaoGapTests
         var jogadorComPecas = new MaoJogador(new Jogador("Bob"));
         jogadorComPecas.AdicionarPeca(new Peca(1, 1));
 
-        ConfigurarRodada(rodada, [jogadorSemPecas, jogadorComPecas], StatusRodada.EmAndamento);
+        // Mocka as mãos dos jogadores com estado garantido
+        ConfigurarRodada(rodada, new[] { jogadorSemPecas, jogadorComPecas }, StatusRodada.EmAndamento);
 
         var houveBatida = rodada.VerificarBatida();
 
@@ -45,7 +47,8 @@ public class RodadaFinalizacaoGapTests
         jogadorA.AdicionarPeca(new Peca(3, 4));
         jogadorB.AdicionarPeca(new Peca(6, 6));
 
-        ConfigurarRodada(rodada, [jogadorA, jogadorB], StatusRodada.EmAndamento);
+        // Mocka as mãos dos jogadores com estado garantido (sem chamar Iniciar que limpa o tabuleiro)
+        ConfigurarRodada(rodada, new[] { jogadorA, jogadorB }, StatusRodada.EmAndamento);
 
         var travou = rodada.VerificarTabuleiroTravado();
 
@@ -57,6 +60,9 @@ public class RodadaFinalizacaoGapTests
 
     private static void ConfigurarRodada(Rodada rodada, IEnumerable<MaoJogador> maos, StatusRodada status)
     {
+        var maosField = typeof(Rodada).GetField("_maosJogadores", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        maosField.SetValue(rodada, new List<MaoJogador>(maos));
+
         var filaField = typeof(Rodada).GetField("_jogadores", BindingFlags.NonPublic | BindingFlags.Instance)!;
         filaField.SetValue(rodada, new Queue<MaoJogador>(maos));
 

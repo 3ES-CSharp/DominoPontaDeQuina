@@ -22,13 +22,13 @@ public static class OrganizadorJogadoresService
     /// O vencedor da rodada anterior (quando informado), ou o primeiro jogador detentor da sena na ordem das maos,
     /// ou ainda o primeiro jogador da lista como ultimo recurso.
     /// </returns>
-    /// <exception cref="InvalidOperationException">Lancada quando a colecao de maos esta vazia.</exception>
+    /// <exception cref="ArgumentException">Lancada quando a colecao de maos esta vazia.</exception>
     public static Jogador DefinirPrimeiroJogador(IReadOnlyList<MaoJogador> maos, Jogador? vencedorAnterior)
     {
         ArgumentNullException.ThrowIfNull(maos);
 
         if (maos.Count == 0)
-            throw new InvalidOperationException("Nao e possivel definir o primeiro jogador sem maos distribuidas.");
+            throw new ArgumentException("Nao e possivel definir o primeiro jogador sem maos distribuidas.", nameof(maos));
 
         if (vencedorAnterior is not null)
             return vencedorAnterior;
@@ -43,7 +43,7 @@ public static class OrganizadorJogadoresService
     /// <param name="maos">As maos dos jogadores da rodada.</param>
     /// <param name="primeiroJogador">O jogador que iniciara a rodada.</param>
     /// <returns>A fila com as maos enfileiradas em ordem circular.</returns>
-    /// <exception cref="InvalidOperationException">Lancada quando o primeiro jogador nao esta presente entre as maos informadas.</exception>
+    /// <exception cref="ArgumentException">Lancada quando o primeiro jogador nao esta presente entre as maos informadas.</exception>
     public static Queue<MaoJogador> OrganizarFila(IReadOnlyList<MaoJogador> maos, Jogador primeiroJogador)
     {
         ArgumentNullException.ThrowIfNull(maos);
@@ -60,7 +60,7 @@ public static class OrganizadorJogadoresService
         }
 
         if (indiceInicial < 0)
-            throw new InvalidOperationException("O primeiro jogador informado nao pertence a colecao de maos.");
+            throw new ArgumentException("O primeiro jogador informado nao pertence a colecao de maos.", nameof(primeiroJogador));
 
         var fila = new Queue<MaoJogador>(maos.Count);
         for (var i = 0; i < maos.Count; i++)

@@ -18,6 +18,12 @@ public class Rodada() : IRodada
     public Tabuleiro Tabuleiro { get; } = new();
 
     /// <summary>
+    /// Mantem a lista completa das maos distribuidas na rodada, preservando a referencia original
+    /// independente da rotacao da fila de turnos.
+    /// </summary>
+    private List<MaoJogador> _maosJogadores = [];
+
+    /// <summary>
     /// Mantem a fila de maos de jogadores na ordem de execucao da rodada.
     /// O nome do campo e preservado por ser referenciado via reflection nos testes.
     /// </summary>
@@ -47,6 +53,7 @@ public class Rodada() : IRodada
         ArgumentNullException.ThrowIfNull(jogadores);
 
         var maosJogadores = DistribuirPecas(jogadores);
+        _maosJogadores = maosJogadores;
         var primeiroJogador = GetPrimeiroJogador(maosJogadores, rodadaAnterior);
         OrganizaJogadores(maosJogadores, primeiroJogador);
         Status = StatusRodada.EmAndamento;
@@ -83,7 +90,7 @@ public class Rodada() : IRodada
         if (Status != StatusRodada.EmAndamento || _jogadores.Count == 0)
             return false;
 
-        if (!Tabuleiro.EstaTravado(_jogadores))
+        if (!Tabuleiro.EstaTravado(_maosJogadores))
             return false;
 
         TipoFinalizacao = TipoFinalizacaoRodada.TabuleiroTravado;

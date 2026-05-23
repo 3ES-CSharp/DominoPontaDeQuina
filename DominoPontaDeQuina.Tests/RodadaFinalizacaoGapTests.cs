@@ -1,6 +1,7 @@
 using DominoPontaDeQuina.Core.Enums;
 using DominoPontaDeQuina.Core.Models;
 using System.Reflection;
+using System.Collections.ObjectModel;
 
 namespace DominoPontaDeQuina.Core.Tests;
 
@@ -21,7 +22,6 @@ public class RodadaFinalizacaoGapTests
 
         // Mocka as mãos dos jogadores com estado garantido
         ConfigurarRodada(rodada, new[] { jogadorSemPecas, jogadorComPecas }, StatusRodada.EmAndamento);
-
 
         var houveBatida = rodada.VerificarBatida();
 
@@ -48,7 +48,8 @@ public class RodadaFinalizacaoGapTests
         jogadorA.AdicionarPeca(new Peca(3, 4));
         jogadorB.AdicionarPeca(new Peca(4, 4));
 
-        ConfigurarRodada(rodada, [jogadorA, jogadorB], StatusRodada.EmAndamento);
+        // Mocka as mãos dos jogadores com estado garantido (sem chamar Iniciar que limpa o tabuleiro)
+        ConfigurarRodada(rodada, new[] { jogadorA, jogadorB }, StatusRodada.EmAndamento);
 
         var travou = rodada.VerificarTabuleiroTravado();
 

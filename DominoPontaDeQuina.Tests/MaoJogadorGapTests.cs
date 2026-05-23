@@ -35,15 +35,15 @@ public class MaoJogadorGapTests
     public void DefazerJogada_DeveRestaurarPecaNaMao()
     {
         var tabuleiro = new Tabuleiro();
-        tabuleiro.Colar(new Peca(6, 6), LadoTabuleiro.Direita); // nao faz sentido se o tabuleiro nao tiver nenhuma peça ja colocado. Pois dessa forma
+        tabuleiro.Colar(new Peca(1, 2), LadoTabuleiro.Direita); 
 
         var mao = new MaoJogador(new Jogador("Alice"));
-        mao.AdicionarPeca(new Peca(2, 6)); // ou poderia mudar aki para ser uma sena/carroca
+        mao.AdicionarPeca(new Peca(2, 6));
         var somaInicial = mao.SomarPecasNaMao();
 
-        var jogada = mao.GetJogada(tabuleiro); // Aki nunca saira uma jogada possivel. 
+        var jogada = mao.GetJogada(tabuleiro); 
         
-        mao.DefazerJogada(jogada); // e assim nao teria como desfazer uma jogada valida.
+        mao.DefazerJogada(jogada); 
 
         
         Assert.Equal(somaInicial, mao.SomarPecasNaMao());

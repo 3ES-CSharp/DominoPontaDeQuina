@@ -317,7 +317,6 @@ public class TabuleiroTests
         // Act
         var resultadoTravadoInicial = tabuleiro.EstaTravado(new[] { mao1, mao2 });
         var mao3 = CriarMaoComPecas(new[] { new Peca(3, 6) });
-
         var resultadoTravadoFinal = tabuleiro.EstaTravado(new[] { mao1, mao2, mao3 });
         
 

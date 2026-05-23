@@ -19,7 +19,9 @@ public class RodadaFinalizacaoGapTests
         var jogadorComPecas = new MaoJogador(new Jogador("Bob"));
         jogadorComPecas.AdicionarPeca(new Peca(1, 1));
 
-        ConfigurarRodada(rodada, [jogadorSemPecas, jogadorComPecas], StatusRodada.EmAndamento);
+        // Mocka as mãos dos jogadores com estado garantido
+        ConfigurarRodada(rodada, new[] { jogadorSemPecas, jogadorComPecas }, StatusRodada.EmAndamento);
+
 
         var houveBatida = rodada.VerificarBatida();
 
@@ -36,9 +38,7 @@ public class RodadaFinalizacaoGapTests
     [Fact(DisplayName = "Deve finalizar por tabuleiro travado e declarar vencedor por menor soma (Critério: status finalizado, tipo TabuleiroTravado e vencedor correto).")]
     public void VerificarTabuleiroTravado_DeveFinalizarRodadaEDeclararVencedorPorMenorSoma()
     {
-        // outro teste, que principalmente por minha experiencia em domino, diria esta errado.
-        // Pois na configuraçao abaixo O jogo nao esta travado. nem se iniciou. e como o Jogador b possui a peca 6-6, ele seria o 1°(e unico ) que poderia colocar uma peça.
-        // sendo a dele a 1° peça. Muderia para um configuraçao que aconteceria o travamento
+
         var rodada = new Rodada();
         rodada.Tabuleiro.Colar(new Peca(6, 6), LadoTabuleiro.Direita); 
 

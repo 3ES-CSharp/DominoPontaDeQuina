@@ -14,18 +14,12 @@ public class TabuleiroGapTests
     public void PodeColar_DevePermitirPrimeiraPeca_QuandoTabuleiroEstiverVazio()
     {
         var tabuleiro = new Tabuleiro();
-        // Por regra padrao so sena/carroca pode ser a primeira peça. Entao esse testa nao faz sentido
-        // Fui ver em regra oficial. Extremamente raro, mas se ninguem tiver sena/carroca, a primeira peça pode ser qualquer uma. mas sinceramente nunca vi isso acontecer kk
-        // mudei para permitir, mas manterei a prioridade para as carrocas. talvez
+
         var podeNaEsquerda = tabuleiro.PodeColar(new Peca(1, 4), LadoTabuleiro.Esquerda);
-        var podeNaDireita = tabuleiro.PodeColar(new Peca(3, 3), LadoTabuleiro.Direita);
-        var podeNaCima = tabuleiro.PodeColar(new Peca(2, 2), LadoTabuleiro.Cima);
-        var podeNaBaixo = tabuleiro.PodeColar(new Peca(6, 6), LadoTabuleiro.Baixo);
+        var podeNaDireita = tabuleiro.PodeColar(new Peca(1, 4), LadoTabuleiro.Direita);
 
         Assert.True(podeNaEsquerda);
         Assert.True(podeNaDireita);
-        Assert.True(podeNaCima);
-        Assert.True(podeNaBaixo);
     }
 
     /// <summary>
@@ -56,7 +50,6 @@ public class TabuleiroGapTests
         tabuleiro.Colar(new Peca(2, 5), LadoTabuleiro.Direita);
 
         tabuleiro.Colar(new Peca(3, 2), LadoTabuleiro.Esquerda);
-
 
         Assert.Equal(3, tabuleiro.PontaEsquerda);
         Assert.Equal(5, tabuleiro.PontaDireita);

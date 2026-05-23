@@ -1,4 +1,5 @@
 using DominoPontaDeQuina.Core.Enums;
+using DominoPontaDeQuina.Core.Exceptions;
 using DominoPontaDeQuina.Core.Models;
 
 namespace DominoPontaDeQuina.Core.Tests;
@@ -34,15 +35,17 @@ public class MaoJogadorGapTests
     public void DefazerJogada_DeveRestaurarPecaNaMao()
     {
         var tabuleiro = new Tabuleiro();
-        tabuleiro.Colar(new Peca(1, 2), LadoTabuleiro.Direita);
+        tabuleiro.Colar(new Peca(6, 6), LadoTabuleiro.Direita); // nao faz sentido se o tabuleiro nao tiver nenhuma peça ja colocado. Pois dessa forma
 
         var mao = new MaoJogador(new Jogador("Alice"));
-        mao.AdicionarPeca(new Peca(2, 6));
+        mao.AdicionarPeca(new Peca(2, 6)); // ou poderia mudar aki para ser uma sena/carroca
         var somaInicial = mao.SomarPecasNaMao();
 
-        var jogada = mao.GetJogada(tabuleiro);
-        mao.DefazerJogada(jogada);
+        var jogada = mao.GetJogada(tabuleiro); // Aki nunca saira uma jogada possivel. 
+        
+        mao.DefazerJogada(jogada); // e assim nao teria como desfazer uma jogada valida.
 
+        
         Assert.Equal(somaInicial, mao.SomarPecasNaMao());
         Assert.False(mao.EstaSemPecas());
     }

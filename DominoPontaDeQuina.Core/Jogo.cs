@@ -1,4 +1,5 @@
 using DominoPontaDeQuina.Core.Enums;
+using DominoPontaDeQuina.Core.Exceptions;
 using DominoPontaDeQuina.Core.Models;
 using System.Collections.ObjectModel;
 
@@ -91,9 +92,9 @@ public class Jogo()
     public async Task ExecutarJogadaAsync()
     {
         if (PartidaAtual?.Status is not StatusPartida.EmAndamento)
-            throw new InvalidOperationException("Nao e possivel executar uma jogada em uma partida que nao esta em andamento.");
+            throw new PartidaNaoIniciadoExcecao("Nao e possivel executar uma jogada em uma partida que nao esta em andamento.");
         if (PartidaAtual.RodadaAtual?.Status is not StatusRodada.EmAndamento)
-            throw new InvalidOperationException("Nao e possivel executar uma jogada em uma rodada que nao esta em andamento.");
+            throw new RodadaNaoIniciadaExcecao("Nao e possivel executar uma jogada em uma rodada que nao esta em andamento.");
 
         var jogadorAtual = PartidaAtual.RodadaAtual.JogadorAtual;
         var jogada = await GetJogadaAsync();
@@ -102,7 +103,7 @@ public class Jogo()
         {
             jogadorAtual.DefazerJogada(jogada);
             jogada.MarcarComoInvalida();
-            throw new InvalidOperationException("A jogada realizada e invalida.");
+            throw new JogadaInvalidaExcecao("A jogada realizada e invalida.");
         }
 
         PartidaAtual.RodadaAtual.RegistrarJogada(jogada);
@@ -115,7 +116,7 @@ public class Jogo()
     public Task<Jogada> GetJogadaAsync()
     {
         if (PartidaAtual?.RodadaAtual is null)
-            throw new InvalidOperationException("Nao ha rodada atual para obter jogada.");
+            throw new SemRodadaExcecao("Nao ha rodada atual para obter jogada.");
 
         var jogadorAtual = PartidaAtual.RodadaAtual.JogadorAtual;
         return Task.FromResult(jogadorAtual.GetJogada(PartidaAtual.RodadaAtual.Tabuleiro));
@@ -139,7 +140,7 @@ public class Jogo()
     private ReadOnlyCollection<Jogador> ObterJogadoresDaPartida()
     {
         if (PartidaAtual is null)
-            throw new InvalidOperationException("Nao ha partida atual para obter jogadores.");
+            throw new SemPartidaExcecao("Nao ha partida atual para obter jogadores.");
 
         return PartidaAtual.Times
             .SelectMany(time => time.Jogadores)

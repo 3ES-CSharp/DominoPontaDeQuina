@@ -23,7 +23,7 @@ public class PartidaGapTests
         partida.Times.Add(timeB);
 
         var pontuacoes = partida.GetPontuacaoTimes();
-        
+
         Assert.Equal(2, pontuacoes.Count);
         Assert.Equal(12, pontuacoes[timeA]);
         Assert.Equal(7, pontuacoes[timeB]);

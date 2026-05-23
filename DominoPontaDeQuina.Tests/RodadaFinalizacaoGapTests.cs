@@ -1,6 +1,7 @@
 using DominoPontaDeQuina.Core.Enums;
 using DominoPontaDeQuina.Core.Models;
 using System.Reflection;
+using System.Collections.ObjectModel;
 
 namespace DominoPontaDeQuina.Core.Tests;
 
@@ -22,7 +23,6 @@ public class RodadaFinalizacaoGapTests
         // Mocka as mãos dos jogadores com estado garantido
         ConfigurarRodada(rodada, new[] { jogadorSemPecas, jogadorComPecas }, StatusRodada.EmAndamento);
 
-
         var houveBatida = rodada.VerificarBatida();
 
         Assert.True(houveBatida);
@@ -38,17 +38,17 @@ public class RodadaFinalizacaoGapTests
     [Fact(DisplayName = "Deve finalizar por tabuleiro travado e declarar vencedor por menor soma (Critério: status finalizado, tipo TabuleiroTravado e vencedor correto).")]
     public void VerificarTabuleiroTravado_DeveFinalizarRodadaEDeclararVencedorPorMenorSoma()
     {
-
         var rodada = new Rodada();
-        rodada.Tabuleiro.Colar(new Peca(6, 6), LadoTabuleiro.Direita); 
+        rodada.Tabuleiro.Colar(new Peca(1, 2), LadoTabuleiro.Direita);
 
         var jogadorA = new MaoJogador(new Jogador("Alice"));
         var jogadorB = new MaoJogador(new Jogador("Bob"));
 
         jogadorA.AdicionarPeca(new Peca(3, 4));
-        jogadorB.AdicionarPeca(new Peca(4, 4));
+        jogadorB.AdicionarPeca(new Peca(6, 6));
 
-        ConfigurarRodada(rodada, [jogadorA, jogadorB], StatusRodada.EmAndamento);
+        // Mocka as mãos dos jogadores com estado garantido (sem chamar Iniciar que limpa o tabuleiro)
+        ConfigurarRodada(rodada, new[] { jogadorA, jogadorB }, StatusRodada.EmAndamento);
 
         var travou = rodada.VerificarTabuleiroTravado();
 

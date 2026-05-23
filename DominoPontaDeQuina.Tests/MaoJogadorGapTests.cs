@@ -1,5 +1,4 @@
 using DominoPontaDeQuina.Core.Enums;
-using DominoPontaDeQuina.Core.Exceptions;
 using DominoPontaDeQuina.Core.Models;
 
 namespace DominoPontaDeQuina.Core.Tests;
@@ -35,17 +34,15 @@ public class MaoJogadorGapTests
     public void DefazerJogada_DeveRestaurarPecaNaMao()
     {
         var tabuleiro = new Tabuleiro();
-        tabuleiro.Colar(new Peca(1, 2), LadoTabuleiro.Direita); 
+        tabuleiro.Colar(new Peca(1, 2), LadoTabuleiro.Direita);
 
         var mao = new MaoJogador(new Jogador("Alice"));
         mao.AdicionarPeca(new Peca(2, 6));
         var somaInicial = mao.SomarPecasNaMao();
 
-        var jogada = mao.GetJogada(tabuleiro); 
-        
-        mao.DefazerJogada(jogada); 
+        var jogada = mao.GetJogada(tabuleiro);
+        mao.DefazerJogada(jogada);
 
-        
         Assert.Equal(somaInicial, mao.SomarPecasNaMao());
         Assert.False(mao.EstaSemPecas());
     }

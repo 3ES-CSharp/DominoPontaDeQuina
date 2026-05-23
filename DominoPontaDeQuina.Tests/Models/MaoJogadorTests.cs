@@ -175,7 +175,7 @@ public class MaoJogadorTests
         var jogada = mao.GetJogada(tabuleiro);
         mao.DefazerJogada(jogada);
         Assert.Contains(peca, GetPecas(mao));
-    }    
+    }
 
     /// <summary>
     /// <b>Objetivo:</b> Validar que passar vez não altera o estado da mão quando não há jogada possível.

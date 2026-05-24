@@ -32,6 +32,12 @@ public readonly struct Peca(int valorA, int valorB)
     public bool EhSena => ValorA == 6 && ValorB == 6;
 
     /// <summary>
+    /// Determina se uma peca e ou nao uma carroca.
+    /// valida se a peca possui os mesmos valores em ambos os lados.
+    /// </summary>
+    public bool EhCarroca => ValorA == ValorB;
+
+    /// <summary>
     /// Determina se a peca possui o valor informado em qualquer um de seus lados.
     /// Essa verificacao e base para regras de compatibilidade com as pontas do tabuleiro.
     /// </summary>
@@ -47,6 +53,7 @@ public readonly struct Peca(int valorA, int valorB)
     /// <returns>Uma nova peca invertida.</returns>
     public Peca Inverter() =>
         new(ValorB, ValorA);
+
 
     /// <inheritdoc />
     public override string ToString() =>

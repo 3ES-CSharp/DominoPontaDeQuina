@@ -13,23 +13,78 @@ public class Tabuleiro
     /// Obtem as pecas posicionadas no tabuleiro na ordem em que foram coladas.
     /// </summary>
     public List<Peca> Pecas { get; } = [];
+    public List<Peca> PecasY { get; } = [];
+
+    Peca _pecaMeio { get; set; } 
 
     /// <summary>
     /// Indica se o tabuleiro ainda nao possui pecas coladas.
     /// </summary>
-    public bool EstaVazio => Pecas.Count == 0;
+    public bool EstaVazio => (Pecas.Count+ PecasY.Count) == 0;
 
     /// <summary>
     /// Obtem a ponta esquerda atualmente exposta no tabuleiro.
     /// Quando o tabuleiro estiver vazio, nao existe ponta externa disponivel.
     /// </summary>
-    public int? PontaEsquerda => EstaVazio ? null : Pecas[0].ValorA;
+    public int? PontaEsquerda
+    {
+        get
+        {
+            if (EstaVazio) return null;
+
+            if (Pecas.Count == 0) return _pecaMeio.ValorA;
+
+            return Pecas[0].ValorA;
+        }
+    }
 
     /// <summary>
     /// Obtem a ponta direita atualmente exposta no tabuleiro.
     /// Quando o tabuleiro estiver vazio, nao existe ponta externa disponivel.
     /// </summary>
-    public int? PontaDireita => EstaVazio ? null : Pecas[^1].ValorB;
+    public int? PontaDireita
+    {
+        get
+        {
+            if (EstaVazio) return null;
+
+            if (Pecas.Count == 0) return _pecaMeio.ValorB;
+
+            return Pecas[^1].ValorB;
+        }
+    }
+
+    /// <summary>
+    /// Obtem a ponta direita atualmente exposta no tabuleiro.
+    /// Quando o tabuleiro estiver vazio, nao existe ponta externa disponivel.
+    /// </summary>
+    public int? PontaInferior
+    {
+        get
+        {
+            if (EstaVazio) return null;
+
+            if (PecasY.Count == 0) return _pecaMeio.ValorB;
+
+            return PecasY[^1].ValorB;
+        }
+    }
+
+    /// <summary>
+    /// Obtem a ponta direita atualmente exposta no tabuleiro.
+    /// Quando o tabuleiro estiver vazio, nao existe ponta externa disponivel.
+    /// </summary>
+    public int? PontaSuperior
+    {
+        get
+        {
+            if (EstaVazio) return null;
+
+            if (PecasY.Count == 0) return _pecaMeio.ValorA;
+
+            return PecasY[0].ValorA;
+        }
+    }
 
     /// <summary>
     /// Determina se uma peca pode ser colada no lado informado.
@@ -41,7 +96,26 @@ public class Tabuleiro
     public bool PodeColar(Peca peca, LadoTabuleiro lado)
     {
         // TODO ALUNO: validar se a peca pode ser colada no lado escolhido.
-        throw new NotImplementedException();
+        bool pode = false;
+        if (EstaVazio) return pode = true;
+
+        switch (lado)
+        {
+            case LadoTabuleiro.Esquerda:
+                if(PontaEsquerda != null) pode = peca.PossuiValor(PontaEsquerda!.Value);
+                break;
+            case LadoTabuleiro.Direita:
+                if(PontaDireita != null) pode = peca.PossuiValor(PontaDireita!.Value);
+                break;
+            case LadoTabuleiro.Cima:
+                if(PontaSuperior != null) pode = peca.PossuiValor(PontaSuperior!.Value);
+                break;
+            case LadoTabuleiro.Baixo:
+                if(PontaInferior != null) pode = peca.PossuiValor(PontaInferior!.Value);
+                break;
+        }
+
+        return pode;
     }
 
     /// <summary>
@@ -53,7 +127,37 @@ public class Tabuleiro
     public void Colar(Peca peca, LadoTabuleiro lado)
     {
         // TODO ALUNO: posicionar a peca no lado escolhido, invertendo quando necessario.
-        throw new NotImplementedException();
+        if (EstaVazio && peca.EhSena || EstaVazio && peca.EhCarroca) {Pecas.Add(peca); return; }
+        bool Pode = PodeColar(peca, lado);
+        
+
+        switch (lado)
+        {
+            case LadoTabuleiro.Esquerda when Pode:
+                
+                if(!peca.EhCarroca) if(peca.ValorA == PontaEsquerda) peca = peca.Inverter();
+                Pecas.Insert(0, peca);
+                if(EstaVazio) _pecaMeio = peca;
+                break;
+
+            case LadoTabuleiro.Direita when Pode:
+                if (!peca.EhCarroca) if (peca.ValorB == PontaDireita) peca = peca.Inverter();
+                Pecas.Add(peca);
+                if (EstaVazio) _pecaMeio = peca;
+                break;
+
+            case LadoTabuleiro.Cima when Pode:
+                if (!peca.EhCarroca) if (peca.ValorA == PontaSuperior) peca = peca.Inverter();
+                PecasY.Insert(0, peca);
+                if (EstaVazio) _pecaMeio = peca;
+                break;
+
+            case LadoTabuleiro.Baixo when Pode:
+                if (!peca.EhCarroca) if (peca.ValorB == PontaInferior) peca = peca.Inverter();
+                PecasY.Add(peca);
+                if (EstaVazio) _pecaMeio = peca;
+                break;
+        }
     }
 
     /// <summary>
@@ -62,7 +166,7 @@ public class Tabuleiro
     /// </summary>
     /// <returns>A soma das pontas externas, ou 0 quando o tabuleiro estiver vazio.</returns>
     public int SomarPontasExternas() =>
-        EstaVazio ? 0 : PontaEsquerda!.Value + PontaDireita!.Value;
+        EstaVazio ? 0 : PontaEsquerda!.Value + PontaDireita!.Value + PontaInferior!.Value + PontaSuperior!.Value;
 
     /// <summary>
     /// Determina se o tabuleiro esta travado.
@@ -73,7 +177,10 @@ public class Tabuleiro
     public bool EstaTravado(IEnumerable<MaoJogador> maosJogadores)
     {
         // TODO ALUNO: implementar a regra de travamento do tabuleiro.
-        throw new NotImplementedException();
+        
+        foreach (MaoJogador mao in maosJogadores) if (mao.GetJogada(this).Status != StatusJogada.Invalida) return false;
+        
+        return true;
     }
 
     /// <summary>

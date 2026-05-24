@@ -14,5 +14,15 @@ public enum LadoTabuleiro
     /// <summary>
     /// Indica a ponta direita do tabuleiro.
     /// </summary>
-    Direita
+    Direita,
+
+    /// <summary>
+    /// Indica a ponta superior do tabuleiro.
+    /// </summary>
+    Cima,
+
+    /// <summary>
+    /// Indica a ponta inferior do tabuleiro.
+    /// </summary>
+    Baixo
 }

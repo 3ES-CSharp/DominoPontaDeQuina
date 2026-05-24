@@ -33,27 +33,51 @@ public class Tabuleiro
 
     /// <summary>
     /// Determina se uma peca pode ser colada no lado informado.
-    /// A regra esperada e validar se a peca possui valor compativel com a ponta externa do lado escolhido.
+    /// A primeira peca pode ser colada em qualquer lado. Para as demais, a peca deve
+    /// possuir valor compatível com a ponta externa do lado escolhido.
     /// </summary>
     /// <param name="peca">A peca a ser verificada.</param>
     /// <param name="lado">O lado do tabuleiro.</param>
     /// <returns><see langword="true"/> quando a peca puder ser colada; caso contrario, <see langword="false"/>.</returns>
     public bool PodeColar(Peca peca, LadoTabuleiro lado)
     {
-        // TODO ALUNO: validar se a peca pode ser colada no lado escolhido.
-        throw new NotImplementedException();
+        if (EstaVazio)
+            return true;
+
+        return lado == LadoTabuleiro.Esquerda
+            ? peca.PossuiValor(PontaEsquerda!.Value)
+            : peca.PossuiValor(PontaDireita!.Value);
     }
 
     /// <summary>
     /// Cola uma peca no lado informado do tabuleiro.
-    /// A regra esperada e posicionar a peca no lado correto, invertendo seus valores quando necessario.
+    /// A peca é invertida automaticamente quando necessário para que o encaixe seja correto.
+    /// No lado esquerdo, o ValorB da peca conecta à ponta atual; no lado direito, o ValorA conecta.
     /// </summary>
     /// <param name="peca">A peca a ser colada.</param>
     /// <param name="lado">O lado do tabuleiro.</param>
     public void Colar(Peca peca, LadoTabuleiro lado)
     {
-        // TODO ALUNO: posicionar a peca no lado escolhido, invertendo quando necessario.
-        throw new NotImplementedException();
+        if (EstaVazio)
+        {
+            Pecas.Add(peca);
+            return;
+        }
+
+        if (lado == LadoTabuleiro.Esquerda)
+        {
+            // ValorB da peça deve conectar à ponta esquerda atual
+            if (peca.ValorB != PontaEsquerda!.Value)
+                peca = peca.Inverter();
+            Pecas.Insert(0, peca);
+        }
+        else
+        {
+            // ValorA da peça deve conectar à ponta direita atual
+            if (peca.ValorA != PontaDireita!.Value)
+                peca = peca.Inverter();
+            Pecas.Add(peca);
+        }
     }
 
     /// <summary>
@@ -66,14 +90,17 @@ public class Tabuleiro
 
     /// <summary>
     /// Determina se o tabuleiro esta travado.
-    /// O travamento e esperado quando nenhuma mao de jogador possuir peca compativel com as pontas externas atuais.
+    /// O travamento ocorre quando nenhuma mão de jogador possui peça compatível com qualquer
+    /// uma das pontas externas atuais, tornando impossível continuar a rodada.
     /// </summary>
     /// <param name="maosJogadores">As maos dos jogadores da rodada.</param>
     /// <returns><see langword="true"/> quando o tabuleiro estiver travado; caso contrario, <see langword="false"/>.</returns>
     public bool EstaTravado(IEnumerable<MaoJogador> maosJogadores)
     {
-        // TODO ALUNO: implementar a regra de travamento do tabuleiro.
-        throw new NotImplementedException();
+        if (EstaVazio)
+            return false;
+
+        return !maosJogadores.Any(mao => mao.PossuiPecaCompativel(this));
     }
 
     /// <summary>

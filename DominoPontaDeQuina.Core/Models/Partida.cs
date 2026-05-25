@@ -36,22 +36,19 @@ public class Partida(int pontuacaoAlvo = 50) : IPartida
     /// <inheritdoc />
     public Dictionary<Time, int> GetPontuacaoTimes()
     {
-        // TODO ALUNO: calcular e retornar a pontuacao acumulada de cada time na partida.
-        throw new NotImplementedException();
+        return Times.ToDictionary(time => time, time => time.Pontuacao);
     }
 
     /// <inheritdoc />
     public Time? GetTimeVencedor()
     {
-        // TODO ALUNO: determinar qual time venceu a partida com base na pontuacao alvo.
-        throw new NotImplementedException();
+        return Times.FirstOrDefault(time => time.Pontuacao >= PontuacaoAlvo);
     }
 
     /// <inheritdoc />
     public bool VerificaPontuacaoAlvoAtingida()
     {
-        // TODO ALUNO: verificar se algum time atingiu ou ultrapassou a pontuacao alvo da partida.
-        throw new NotImplementedException();
+        return Times.Any(time => time.Pontuacao >= PontuacaoAlvo);
     }
 
     /// <inheritdoc />

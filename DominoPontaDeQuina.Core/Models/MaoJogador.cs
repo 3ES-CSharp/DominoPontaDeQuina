@@ -8,6 +8,7 @@ public class MaoJogador(Jogador jogador) : IMaoJogador
     /// <summary>
     /// Obtem as pecas atualmente armazenadas na mao do jogador.
     /// </summary>
+    public IEnumerable<Peca> ObterPecas() => _pecas.AsReadOnly();
     List<Peca> _pecas = [];
 
     /// <inheritdoc />

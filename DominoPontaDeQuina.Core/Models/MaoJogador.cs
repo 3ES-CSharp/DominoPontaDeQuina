@@ -8,7 +8,7 @@ public class MaoJogador(Jogador jogador) : IMaoJogador
     /// <summary>
     /// Obtem as pecas atualmente armazenadas na mao do jogador.
     /// </summary>
-    List<Peca> _pecas = [];
+    public readonly List<Peca> _pecas = [];
 
     /// <inheritdoc />
     public Jogador Jogador { get; } = jogador ?? throw new ArgumentNullException(nameof(jogador));

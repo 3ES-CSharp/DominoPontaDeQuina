@@ -53,22 +53,46 @@ public class Rodada() : IRodada
     /// <inheritdoc />
     public bool VerificarBatida()
     {
-        // TODO ALUNO: implementar a logica para verificar se houve batida.
-        throw new NotImplementedException();
+        if (JogadorAtual.EstaSemPecas())
+        {
+            TipoFinalizacao = TipoFinalizacaoRodada.JogadorBateu;
+            Status = StatusRodada.Finalizada;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /// <inheritdoc />
     public bool VerificarTabuleiroTravado()
     {
-        // TODO ALUNO: implementar a logica para verificar se houve travamento.
-        throw new NotImplementedException();
+        List<MaoJogador> maos = [.. _jogadores];
+        if(Tabuleiro.EstaTravado(maos))
+        {
+            TipoFinalizacao = TipoFinalizacaoRodada.TabuleiroTravado;
+            Status = StatusRodada.Finalizada;
+            return true;
+        }
+        return false;
     }
 
     /// <inheritdoc />
     public Jogador? GetVencedor()
     {
-        // TODO ALUNO: implementar a logica para obter o vencedor da rodada.
-        throw new NotImplementedException();
+        if(TipoFinalizacao == TipoFinalizacaoRodada.JogadorBateu)
+        {
+            return JogadorAtual.Jogador;
+        }
+        else if (TipoFinalizacao == TipoFinalizacaoRodada.TabuleiroTravado)
+        {
+            return _jogadores.OrderBy(m => m.SomarPecasNaMao()).First().Jogador;
+        }
+        else
+        {
+            return null;
+        }
     }
 
     /// <summary>
@@ -78,8 +102,38 @@ public class Rodada() : IRodada
     /// <returns>A lista de maos distribuidas para os jogadores.</returns>
     private List<MaoJogador> DistribuirPecas(ReadOnlyCollection<Jogador> jogadores)
     {
-        // TODO ALUNO: implementar a distribuicao das pecas entre os jogadores.
-        throw new NotImplementedException();
+        List<Peca> pecas = new List<Peca>();
+        for(int i = 0; i <= 6; i++)
+        {
+            for(int j = i; j <= 6; j++)
+            {
+                pecas.Add(new Peca(i, j));
+            }
+        }
+
+        Random random = new Random();
+        for (int i = pecas.Count - 1; i > 0; i--)
+        {
+            int randomIndex = random.Next(i + 1);
+            Peca pecaA = pecas[i];
+            Peca pecaB = pecas[randomIndex];
+            pecas[i] = pecaB;
+            pecas[randomIndex] = pecaA;
+        }
+
+        List<MaoJogador> maos = [];
+        int pecaIndex = 0;
+        foreach (var jogador in jogadores)
+        {
+            MaoJogador mao = new(jogador);
+            for (int i = 0; i < 7; i++)
+            {
+                mao.AdicionarPeca(pecas[pecaIndex]);
+                pecaIndex++;
+            }
+            maos.Add(mao);
+        }
+        return maos;
     }
 
     /// <summary>
@@ -96,8 +150,11 @@ public class Rodada() : IRodada
         }
         else
         {
-            // TODO ALUNO: implementar a logica para obter o primeiro jogador da rodada.
-            throw new NotImplementedException();
+            foreach (var mao in jogadores)
+            {
+                if (mao.PossuiSena()) return mao.Jogador;
+            }
+            return jogadores[0].Jogador;
         }
     }
 
@@ -108,8 +165,14 @@ public class Rodada() : IRodada
     /// <param name="primeiroJogador">O jogador que iniciara a rodada.</param>
     private void OrganizaJogadores(List<MaoJogador> jogadores, Jogador primeiroJogador)
     {
-        // TODO ALUNO: montar a fila de jogadores da rodada a partir do primeiro jogador definido.
-        throw new NotImplementedException();
+        _jogadores.Clear();
+        int indicePrimeiro = jogadores.FindIndex(m => m.Jogador.Equals(primeiroJogador));
+        int totalJogadores = jogadores.Count;
+        for (int i = 0; i < totalJogadores; i++)
+        {
+            int indiceCircular = (indicePrimeiro + i) % totalJogadores;
+            _jogadores.Enqueue(jogadores[indiceCircular]);
+        }
     }
 
     /// <summary>
@@ -117,7 +180,14 @@ public class Rodada() : IRodada
     /// </summary>
     private void CalcularPontuacao()
     {
-        // TODO ALUNO: implementar a logica para calcular a pontuacao dos jogadores ao final da rodada.
-        throw new NotImplementedException();
+        if (TipoFinalizacao is not null) return;
+
+        int soma = Tabuleiro.SomarPontasExternas();
+        if(soma % 5 == 0)
+        {
+            //TODO ALUNO: atribuir os pontos ao vencedor.
+        }
+
+        if(VerificarBatida() || VerificarTabuleiroTravado()) Status = StatusRodada.Finalizada;
     }
 }

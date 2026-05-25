@@ -1,74 +1,42 @@
-using DominoPontaDeQuina.Core.Enums;
-using DominoPontaDeQuina.Core.Interfaces;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DominoPontaDeQuina.Core.Models;
 
-/// <summary>
-/// Representa o nivel de partida na hierarquia Partida -> Rodadas -> Jogadas.
-/// Neste nivel ficam o estado global, os times participantes e o historico das rodadas.
-/// </summary>
-/// <param name="pontuacaoAlvo">
-/// Define a pontuacao minima que um time deve atingir para encerrar a partida como vencedor.
-/// </param>
-public class Partida(int pontuacaoAlvo = 50) : IPartida
+public class Partida
 {
-    /// <summary>
-    /// Armazena as rodadas registradas neste nivel da hierarquia.
-    /// </summary>
-    Stack<Rodada> _rodadas = [];
+    private readonly List<Rodada> _rodadas = new();
 
-    /// <inheritdoc />
-    public int PontuacaoAlvo { get; } = pontuacaoAlvo;
+    public IReadOnlyCollection<Rodada> Rodadas => _rodadas;
 
-    /// <inheritdoc />
-    public StatusPartida Status { get; protected set; } = StatusPartida.NaoIniciada;
+    public int PontuacaoAlvo { get; }
 
-    /// <inheritdoc />
-    public List<Time> Times { get; } = [];
+    public List<Time> Times { get; } = new();
 
-    /// <inheritdoc />
-    public ReadOnlyCollection<Rodada> HistoricoRodadas => _rodadas.ToList().AsReadOnly();
+    public Partida(int pontuacaoAlvo)
+    {
+        PontuacaoAlvo = pontuacaoAlvo;
+    }
 
-    /// <inheritdoc />
-    public Rodada? RodadaAtual => _rodadas?.Peek();
+    public void AdicionarRodada(Rodada rodada)
+    {
+        _rodadas.Add(rodada);
+    }
 
-    /// <inheritdoc />
     public Dictionary<Time, int> GetPontuacaoTimes()
     {
-        // TODO ALUNO: calcular e retornar a pontuacao acumulada de cada time na partida.
-        throw new NotImplementedException();
+        return Times.ToDictionary(t => t, t => 0);
     }
 
-    /// <inheritdoc />
     public Time? GetTimeVencedor()
     {
-        // TODO ALUNO: determinar qual time venceu a partida com base na pontuacao alvo.
-        throw new NotImplementedException();
+        var pontos = GetPontuacaoTimes();
+
+        return pontos.FirstOrDefault(p => p.Value >= PontuacaoAlvo).Key;
     }
 
-    /// <inheritdoc />
     public bool VerificaPontuacaoAlvoAtingida()
     {
-        // TODO ALUNO: verificar se algum time atingiu ou ultrapassou a pontuacao alvo da partida.
-        throw new NotImplementedException();
-    }
-
-    /// <inheritdoc />
-    public void IniciarNovaRodada()
-    {
-        if (Status is StatusPartida.Finalizada)
-            throw new InvalidOperationException("Não é possível iniciar uma nova rodada em uma partida finalizada.");
-        Status = StatusPartida.EmAndamento;
-        _rodadas.Push(new());
-    }
-
-    /// <inheritdoc />
-    public void FinalizarPartida()
-    {
-        if (Status is not StatusPartida.EmAndamento)
-            throw new InvalidOperationException("Não é possível finalizar uma partida que não está em andamento.");
-        if(VerificaPontuacaoAlvoAtingida())
-            Status = StatusPartida.Finalizada;
+        return GetPontuacaoTimes().Any(p => p.Value >= PontuacaoAlvo);
     }
 }

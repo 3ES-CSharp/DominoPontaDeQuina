@@ -1,41 +1,41 @@
-using DominoPontaDeQuina.Core.Interfaces;
+using System.Collections.Generic;
+using System.Linq;
+using DominoPontaDeQuina.Core.Enums;
 
 namespace DominoPontaDeQuina.Core.Models;
 
-/// <inheritdoc cref="IMaoJogador"/>
-public class MaoJogador(Jogador jogador) : IMaoJogador
+public class MaoJogador
 {
-    /// <summary>
-    /// Obtem as pecas atualmente armazenadas na mao do jogador.
-    /// </summary>
-    List<Peca> _pecas = [];
+    private readonly List<Peca> _pecas = new();
 
-    /// <inheritdoc />
-    public Jogador Jogador { get; } = jogador ?? throw new ArgumentNullException(nameof(jogador));
+    public IReadOnlyCollection<Peca> Pecas => _pecas;
 
-    /// <inheritdoc />
-    public void AdicionarPeca(Peca peca) => _pecas.Add(peca);
+    public void Adicionar(Peca peca) => _pecas.Add(peca);
 
-    /// <inheritdoc />
-    public int SomarPecasNaMao() => _pecas.Sum(peca => peca.SomaValores);
+    public void Remover(Peca peca) => _pecas.Remove(peca);
 
-    /// <inheritdoc />
-    public bool PossuiSena() => _pecas.Any(peca => peca.EhSena);
+    public bool EstaSemPecas() => !_pecas.Any();
 
-    /// <inheritdoc />
-    public bool EstaSemPecas() => _pecas.Count == 0;
-
-    /// <inheritdoc />
-    public Jogada GetJogada(Tabuleiro tabuleiro)
+    public Jogada? GetJogada(Tabuleiro tabuleiro)
     {
-        // TODO ALUNO: definir como a mao escolhe a jogada com base nas pecas disponiveis e no estado do tabuleiro.
-        throw new NotImplementedException();
+        foreach (var peca in _pecas)
+        {
+            if (tabuleiro.PodeColar(peca, LadoTabuleiro.Direita))
+                return new Jogada(peca, LadoTabuleiro.Direita);
+        }
+
+        foreach (var peca in _pecas)
+        {
+            if (tabuleiro.PodeColar(peca, LadoTabuleiro.Esquerda))
+                return new Jogada(peca, LadoTabuleiro.Esquerda);
+        }
+
+        return null;
     }
 
-    /// <inheritdoc />
     public void DefazerJogada(Jogada jogada)
     {
-        // TODO ALUNO: restaurar a mao do jogador ao estado anterior a jogada desfeita.
-        throw new NotImplementedException();
+        if (jogada?.Peca != null)
+            _pecas.Add(jogada.Peca);
     }
 }

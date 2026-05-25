@@ -1,3 +1,4 @@
+// Autoria: Gabriel Galerani (557421) e Leonardo Taschin (554583) - Grupo 3ESPF/05
 using DominoPontaDeQuina.Core.Enums;
 using DominoPontaDeQuina.Core.Interfaces;
 using System.Collections.ObjectModel;
@@ -34,41 +35,63 @@ public class Partida(int pontuacaoAlvo = 50) : IPartida
     public Rodada? RodadaAtual => _rodadas?.Peek();
 
     /// <inheritdoc />
+    /// <summary>
+    /// Calcula e retorna a pontuacao acumulada de cada time na partida.
+    /// Autoria: Gabriel Galerani (557421) e Leonardo Taschin (554583)
+    /// </summary>
     public Dictionary<Time, int> GetPontuacaoTimes()
     {
-        // TODO ALUNO: calcular e retornar a pontuacao acumulada de cada time na partida.
-        throw new NotImplementedException();
+        var dict = new Dictionary<Time, int>();
+        foreach (var time in Times)
+        {
+            dict[time] = time.Pontuacao;
+        }
+        return dict;
     }
 
     /// <inheritdoc />
+    /// <summary>
+    /// Determina qual time venceu a partida com base no alcance da pontuacao alvo.
+    /// Autoria: Gabriel Galerani (557421) e Leonardo Taschin (554583)
+    /// </summary>
     public Time? GetTimeVencedor()
     {
-        // TODO ALUNO: determinar qual time venceu a partida com base na pontuacao alvo.
-        throw new NotImplementedException();
+        return Times.FirstOrDefault(t => t.Pontuacao >= PontuacaoAlvo);
     }
 
     /// <inheritdoc />
+    /// <summary>
+    /// Verifica se algum time atingiu ou ultrapassou a pontuacao alvo da partida.
+    /// Autoria: Gabriel Galerani (557421) e Leonardo Taschin (554583)
+    /// </summary>
     public bool VerificaPontuacaoAlvoAtingida()
     {
-        // TODO ALUNO: verificar se algum time atingiu ou ultrapassou a pontuacao alvo da partida.
-        throw new NotImplementedException();
+        return Times.Any(t => t.Pontuacao >= PontuacaoAlvo);
     }
 
     /// <inheritdoc />
+    /// <summary>
+    /// Inicia uma nova rodada na partida, alterando o status se necessario.
+    /// Autoria: Gabriel Galerani (557421) e Leonardo Taschin (554583)
+    /// </summary>
     public void IniciarNovaRodada()
     {
         if (Status is StatusPartida.Finalizada)
-            throw new InvalidOperationException("Não é possível iniciar uma nova rodada em uma partida finalizada.");
+            throw new DominoPontaDeQuina.Core.Exceptions.PartidaInvalidaException("Não é possível iniciar uma nova rodada em uma partida finalizada.");
         Status = StatusPartida.EmAndamento;
         _rodadas.Push(new());
     }
 
     /// <inheritdoc />
+    /// <summary>
+    /// Finaliza a partida quando a pontuacao alvo for atingida por algum time.
+    /// Autoria: Gabriel Galerani (557421) e Leonardo Taschin (554583)
+    /// </summary>
     public void FinalizarPartida()
     {
         if (Status is not StatusPartida.EmAndamento)
-            throw new InvalidOperationException("Não é possível finalizar uma partida que não está em andamento.");
-        if(VerificaPontuacaoAlvoAtingida())
+            throw new DominoPontaDeQuina.Core.Exceptions.PartidaInvalidaException("Não é possível finalizar uma partida que não está em andamento.");
+        if (VerificaPontuacaoAlvoAtingida())
             Status = StatusPartida.Finalizada;
     }
 }

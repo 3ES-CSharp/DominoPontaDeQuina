@@ -1,3 +1,4 @@
+// Autoria: Gabriel Galerani (557421) e Leonardo Taschin (554583) - Grupo 3ESPF/05
 using DominoPontaDeQuina.Core.Enums;
 using DominoPontaDeQuina.Core.Models;
 using System.Collections.ObjectModel;
@@ -27,11 +28,11 @@ public class Jogo()
 
     /// <summary>
     /// Registra os times da partida atual.
+    /// Autoria: Gabriel Galerani (557421) e Leonardo Taschin (554583)
     /// </summary>
     public Task RegistrarTimesAsync()
     {
-        // TODO ALUNO: registrar os times e jogadores da partida antes do inicio da primeira rodada.
-        throw new NotImplementedException();
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -87,13 +88,14 @@ public class Jogo()
 
     /// <summary>
     /// Executa a jogada do jogador atual na rodada em andamento.
+    /// Autoria: Gabriel Galerani (557421) e Leonardo Taschin (554583)
     /// </summary>
     public async Task ExecutarJogadaAsync()
     {
         if (PartidaAtual?.Status is not StatusPartida.EmAndamento)
-            throw new InvalidOperationException("Nao e possivel executar uma jogada em uma partida que nao esta em andamento.");
+            throw new DominoPontaDeQuina.Core.Exceptions.PartidaInvalidaException("Nao e possivel executar uma jogada em uma partida que nao esta em andamento.");
         if (PartidaAtual.RodadaAtual?.Status is not StatusRodada.EmAndamento)
-            throw new InvalidOperationException("Nao e possivel executar uma jogada em uma rodada que nao esta em andamento.");
+            throw new DominoPontaDeQuina.Core.Exceptions.PartidaInvalidaException("Nao e possivel executar uma jogada em uma rodada que nao esta em andamento.");
 
         var jogadorAtual = PartidaAtual.RodadaAtual.JogadorAtual;
         var jogada = await GetJogadaAsync();
@@ -102,7 +104,7 @@ public class Jogo()
         {
             jogadorAtual.DefazerJogada(jogada);
             jogada.MarcarComoInvalida();
-            throw new InvalidOperationException("A jogada realizada e invalida.");
+            throw new DominoPontaDeQuina.Core.Exceptions.JogadaInvalidaException("A jogada realizada e invalida.");
         }
 
         PartidaAtual.RodadaAtual.RegistrarJogada(jogada);
@@ -110,12 +112,13 @@ public class Jogo()
 
     /// <summary>
     /// Obtem a jogada definida pelo jogador atual com base no estado do tabuleiro.
+    /// Autoria: Gabriel Galerani (557421) e Leonardo Taschin (554583)
     /// </summary>
     /// <returns>A jogada escolhida pelo jogador atual.</returns>
     public Task<Jogada> GetJogadaAsync()
     {
         if (PartidaAtual?.RodadaAtual is null)
-            throw new InvalidOperationException("Nao ha rodada atual para obter jogada.");
+            throw new DominoPontaDeQuina.Core.Exceptions.PartidaInvalidaException("Nao ha rodada atual para obter jogada.");
 
         var jogadorAtual = PartidaAtual.RodadaAtual.JogadorAtual;
         return Task.FromResult(jogadorAtual.GetJogada(PartidaAtual.RodadaAtual.Tabuleiro));
@@ -123,13 +126,25 @@ public class Jogo()
 
     /// <summary>
     /// Valida a jogada no contexto da rodada atual.
+    /// Autoria: Gabriel Galerani (557421) e Leonardo Taschin (554583)
     /// </summary>
     /// <param name="jogada">A jogada a ser validada.</param>
     /// <returns><see langword="true"/> quando a jogada for valida; caso contrario, <see langword="false"/>.</returns>
     public bool ValidarJogada(Jogada jogada)
     {
-        // TODO ALUNO: validar se a jogada e compativel com o estado atual do tabuleiro.
-        throw new NotImplementedException();
+        if (PartidaAtual?.RodadaAtual is null)
+            return false;
+
+        var rodada = PartidaAtual.RodadaAtual;
+        var validator = new DominoPontaDeQuina.Core.Validators.JogadaValidator();
+        try
+        {
+            return validator.Validar(jogada, rodada.Tabuleiro, rodada.JogadorAtual);
+        }
+        catch (DominoPontaDeQuina.Core.Exceptions.JogadaInvalidaException)
+        {
+            return false;
+        }
     }
 
     /// <summary>

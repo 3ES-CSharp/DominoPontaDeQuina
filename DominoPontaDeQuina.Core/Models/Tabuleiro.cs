@@ -1,3 +1,4 @@
+// Autoria: Gabriel Galerani (557421) e Leonardo Taschin (554583) - Grupo 3ESPF/05
 using DominoPontaDeQuina.Core.Enums;
 
 namespace DominoPontaDeQuina.Core.Models;
@@ -34,26 +35,58 @@ public class Tabuleiro
     /// <summary>
     /// Determina se uma peca pode ser colada no lado informado.
     /// A regra esperada e validar se a peca possui valor compativel com a ponta externa do lado escolhido.
+    /// Autoria: Gabriel Galerani (557421) e Leonardo Taschin (554583)
     /// </summary>
     /// <param name="peca">A peca a ser verificada.</param>
     /// <param name="lado">O lado do tabuleiro.</param>
     /// <returns><see langword="true"/> quando a peca puder ser colada; caso contrario, <see langword="false"/>.</returns>
     public bool PodeColar(Peca peca, LadoTabuleiro lado)
     {
-        // TODO ALUNO: validar se a peca pode ser colada no lado escolhido.
-        throw new NotImplementedException();
+        if (EstaVazio)
+            return true;
+
+        return lado switch
+        {
+            LadoTabuleiro.Esquerda => peca.PossuiValor(PontaEsquerda!.Value),
+            LadoTabuleiro.Direita => peca.PossuiValor(PontaDireita!.Value),
+            _ => false
+        };
     }
 
     /// <summary>
     /// Cola uma peca no lado informado do tabuleiro.
     /// A regra esperada e posicionar a peca no lado correto, invertendo seus valores quando necessario.
+    /// Autoria: Gabriel Galerani (557421) e Leonardo Taschin (554583)
     /// </summary>
     /// <param name="peca">A peca a ser colada.</param>
     /// <param name="lado">O lado do tabuleiro.</param>
     public void Colar(Peca peca, LadoTabuleiro lado)
     {
-        // TODO ALUNO: posicionar a peca no lado escolhido, invertendo quando necessario.
-        throw new NotImplementedException();
+        if (EstaVazio)
+        {
+            Pecas.Add(peca);
+            return;
+        }
+
+        if (!PodeColar(peca, lado))
+        {
+            throw new DominoPontaDeQuina.Core.Exceptions.JogadaInvalidaException(
+                $"A peça {peca} não pode ser colada no lado {lado} pois é incompatível."
+            );
+        }
+
+        if (lado == LadoTabuleiro.Esquerda)
+        {
+            // O valor B da nova peca deve se conectar com o antigo PontaEsquerda
+            var pecaAColar = peca.ValorB == PontaEsquerda!.Value ? peca : peca.Inverter();
+            Pecas.Insert(0, pecaAColar);
+        }
+        else if (lado == LadoTabuleiro.Direita)
+        {
+            // O valor A da nova peca deve se conectar com o antigo PontaDireita
+            var pecaAColar = peca.ValorA == PontaDireita!.Value ? peca : peca.Inverter();
+            Pecas.Add(pecaAColar);
+        }
     }
 
     /// <summary>
@@ -67,13 +100,27 @@ public class Tabuleiro
     /// <summary>
     /// Determina se o tabuleiro esta travado.
     /// O travamento e esperado quando nenhuma mao de jogador possuir peca compativel com as pontas externas atuais.
+    /// Autoria: Gabriel Galerani (557421) e Leonardo Taschin (554583)
     /// </summary>
     /// <param name="maosJogadores">As maos dos jogadores da rodada.</param>
     /// <returns><see langword="true"/> quando o tabuleiro estiver travado; caso contrario, <see langword="false"/>.</returns>
     public bool EstaTravado(IEnumerable<MaoJogador> maosJogadores)
     {
-        // TODO ALUNO: implementar a regra de travamento do tabuleiro.
-        throw new NotImplementedException();
+        if (EstaVazio)
+            return false;
+
+        foreach (var mao in maosJogadores)
+        {
+            foreach (var peca in mao.Pecas)
+            {
+                if (PodeColar(peca, LadoTabuleiro.Esquerda) || PodeColar(peca, LadoTabuleiro.Direita))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /// <summary>

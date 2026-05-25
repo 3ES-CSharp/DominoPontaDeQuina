@@ -152,13 +152,22 @@ jobs:
             /d:sonar.newCode.referenceBranch="main" \
             /d:sonar.sources="DominoPontaDeQuina.Core" \
             /d:sonar.inclusions="**/*.cs" \
-            /d:sonar.exclusions="**/bin/**,**/obj/**,DominoPontaDeQuina.Tests/**"
+            /d:sonar.exclusions="**/bin/**,**/obj/**,DominoPontaDeQuina.Tests/**" \
+            /d:sonar.cs.cobertura.reportsPaths="**/TestResults/**/*.xml"
 
       - name: Restore
         run: dotnet restore DominoPontaDeQuina.Tests/DominoPontaDeQuina.Tests.csproj
 
       - name: Build
         run: dotnet build DominoPontaDeQuina.Tests/DominoPontaDeQuina.Tests.csproj --configuration Release --no-restore
+
+      - name: Test with Coverage
+        run: |
+          dotnet test DominoPontaDeQuina.Tests/DominoPontaDeQuina.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --collect:"XPlat Code Coverage" \
+            --results-directory TestResults
 
       - name: SonarCloud End
         env:
@@ -205,13 +214,22 @@ jobs:
             /d:sonar.newCode.referenceBranch="main" \
             /d:sonar.sources="DominoPontaDeQuina.Core" \
             /d:sonar.inclusions="**/*.cs" \
-            /d:sonar.exclusions="**/bin/**,**/obj/**,DominoPontaDeQuina.Tests/**"
+            /d:sonar.exclusions="**/bin/**,**/obj/**,DominoPontaDeQuina.Tests/**" \
+            /d:sonar.cs.cobertura.reportsPaths="**/TestResults/**/*.xml"
 
       - name: Restore
         run: dotnet restore DominoPontaDeQuina.Tests/DominoPontaDeQuina.Tests.csproj
 
       - name: Build
         run: dotnet build DominoPontaDeQuina.Tests/DominoPontaDeQuina.Tests.csproj --configuration Release --no-restore
+
+      - name: Test with Coverage
+        run: |
+          dotnet test DominoPontaDeQuina.Tests/DominoPontaDeQuina.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --collect:"XPlat Code Coverage" \
+            --results-directory TestResults
 
       - name: SonarCloud End
         env:

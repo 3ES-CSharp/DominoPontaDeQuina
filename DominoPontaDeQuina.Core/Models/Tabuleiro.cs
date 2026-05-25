@@ -1,4 +1,5 @@
 using DominoPontaDeQuina.Core.Enums;
+using DominoPontaDeQuina.Core.Exceptions;
 
 namespace DominoPontaDeQuina.Core.Models;
 
@@ -40,8 +41,14 @@ public class Tabuleiro
     /// <returns><see langword="true"/> quando a peca puder ser colada; caso contrario, <see langword="false"/>.</returns>
     public bool PodeColar(Peca peca, LadoTabuleiro lado)
     {
-        // TODO ALUNO: validar se a peca pode ser colada no lado escolhido.
-        throw new NotImplementedException();
+        if (EstaVazio) return true;
+
+        return lado switch
+        {
+            LadoTabuleiro.Esquerda => peca.ValorA == PontaEsquerda || peca.ValorB == PontaEsquerda,
+            LadoTabuleiro.Direita => peca.ValorA == PontaDireita || peca.ValorB == PontaDireita,
+            _ => false
+        };
     }
 
     /// <summary>
@@ -52,8 +59,23 @@ public class Tabuleiro
     /// <param name="lado">O lado do tabuleiro.</param>
     public void Colar(Peca peca, LadoTabuleiro lado)
     {
-        // TODO ALUNO: posicionar a peca no lado escolhido, invertendo quando necessario.
-        throw new NotImplementedException();
+        if (!PodeColar(peca, lado)) throw new JogadaInvalidaException($"A peça {peca} não pode ser colada no lado {lado}.");
+
+        if (EstaVazio) {
+            Pecas.Add(peca);
+            return;
+        }
+
+        if (lado == LadoTabuleiro.Esquerda)
+        {
+            if (peca.ValorB != PontaEsquerda) peca = peca.Inverter();
+            Pecas.Insert(0, peca);
+        }
+        else if (lado == LadoTabuleiro.Direita)
+        {
+            if (peca.ValorA != PontaDireita) peca = peca.Inverter();
+            Pecas.Add(peca);
+        }
     }
 
     /// <summary>
@@ -72,8 +94,16 @@ public class Tabuleiro
     /// <returns><see langword="true"/> quando o tabuleiro estiver travado; caso contrario, <see langword="false"/>.</returns>
     public bool EstaTravado(IEnumerable<MaoJogador> maosJogadores)
     {
-        // TODO ALUNO: implementar a regra de travamento do tabuleiro.
-        throw new NotImplementedException();
+        if(EstaVazio) return false;
+
+        foreach (var mao in maosJogadores)
+        {
+            foreach (var peca in mao._pecas)
+            {
+                if (PodeColar(peca, LadoTabuleiro.Esquerda) || PodeColar(peca, LadoTabuleiro.Direita)) return false;
+            }
+        }
+        return true;
     }
 
     /// <summary>

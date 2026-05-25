@@ -1,3 +1,4 @@
+using DominoPontaDeQuina.Core.Enums;
 using DominoPontaDeQuina.Core.Interfaces;
 
 namespace DominoPontaDeQuina.Core.Models;
@@ -8,7 +9,7 @@ public class MaoJogador(Jogador jogador) : IMaoJogador
     /// <summary>
     /// Obtem as pecas atualmente armazenadas na mao do jogador.
     /// </summary>
-    List<Peca> _pecas = [];
+    public readonly List<Peca> _pecas = [];
 
     /// <inheritdoc />
     public Jogador Jogador { get; } = jogador ?? throw new ArgumentNullException(nameof(jogador));
@@ -28,14 +29,32 @@ public class MaoJogador(Jogador jogador) : IMaoJogador
     /// <inheritdoc />
     public Jogada GetJogada(Tabuleiro tabuleiro)
     {
-        // TODO ALUNO: definir como a mao escolhe a jogada com base nas pecas disponiveis e no estado do tabuleiro.
-        throw new NotImplementedException();
+        foreach (var peca in _pecas)
+        {
+            if (tabuleiro.PodeColar(peca, LadoTabuleiro.Direita))
+            {
+                _pecas.Remove(peca);
+                return new Jogada(Jogador, peca, peca.ValorA, LadoTabuleiro.Direita);
+            }
+        }
+
+        foreach (var peca in _pecas)
+        {
+            if (tabuleiro.PodeColar(peca, LadoTabuleiro.Esquerda))
+            {
+                _pecas.Remove(peca);
+                return new Jogada(Jogador, peca, peca.ValorA, LadoTabuleiro.Esquerda);
+            }
+        }
+
+        return new Jogada(Jogador);
     }
 
     /// <inheritdoc />
     public void DefazerJogada(Jogada jogada)
     {
-        // TODO ALUNO: restaurar a mao do jogador ao estado anterior a jogada desfeita.
-        throw new NotImplementedException();
+        if (jogada.EhPassarVez()) return;
+
+        if(jogada.Peca != null) _pecas.Add(jogada.Peca.Value);
     }
 }

@@ -1,4 +1,5 @@
 using DominoPontaDeQuina.Core.Enums;
+using DominoPontaDeQuina.Core.Exceptions;
 using DominoPontaDeQuina.Core.Interfaces;
 using System.Collections.ObjectModel;
 
@@ -36,29 +37,26 @@ public class Partida(int pontuacaoAlvo = 50) : IPartida
     /// <inheritdoc />
     public Dictionary<Time, int> GetPontuacaoTimes()
     {
-        // TODO ALUNO: calcular e retornar a pontuacao acumulada de cada time na partida.
-        throw new NotImplementedException();
+        return Times.ToDictionary(time => time, time => time.Pontuacao);
     }
 
     /// <inheritdoc />
     public Time? GetTimeVencedor()
     {
-        // TODO ALUNO: determinar qual time venceu a partida com base na pontuacao alvo.
-        throw new NotImplementedException();
+        return Times.FirstOrDefault(time => time.Pontuacao >= PontuacaoAlvo);
     }
 
     /// <inheritdoc />
     public bool VerificaPontuacaoAlvoAtingida()
     {
-        // TODO ALUNO: verificar se algum time atingiu ou ultrapassou a pontuacao alvo da partida.
-        throw new NotImplementedException();
+        return Times.Any(time => time.Pontuacao >= PontuacaoAlvo);
     }
 
     /// <inheritdoc />
     public void IniciarNovaRodada()
     {
         if (Status is StatusPartida.Finalizada)
-            throw new InvalidOperationException("Não é possível iniciar uma nova rodada em uma partida finalizada.");
+            throw new PartidaInvalidaException("Não é possível iniciar uma nova rodada em uma partida finalizada.");
         Status = StatusPartida.EmAndamento;
         _rodadas.Push(new());
     }
@@ -67,7 +65,7 @@ public class Partida(int pontuacaoAlvo = 50) : IPartida
     public void FinalizarPartida()
     {
         if (Status is not StatusPartida.EmAndamento)
-            throw new InvalidOperationException("Não é possível finalizar uma partida que não está em andamento.");
+            throw new PartidaInvalidaException("Não é possível finalizar uma partida que não está em andamento.");
         if(VerificaPontuacaoAlvoAtingida())
             Status = StatusPartida.Finalizada;
     }

@@ -1,113 +1,185 @@
-# DominoPontaDeQuina.Core
+# Checkpoit 3 - C Software Development: 
+# DominoPontaDeQuina.Core 
 
-Este projeto contém o esqueleto básico da regra do jogo Dominó Ponta de Quina.
+---
 
-## Objetivo do trabalho
+## Descriação
+Projeto desenvolvido para a **Checkpoint 3** da disciplina **Software Development C#** – 3ES/2026.
 
-O objetivo deste trabalho é implementar os gaps deixados no core do projeto.
+**Integrantes do grupo:**  
+- Matheus Taylor, RM556211  
+- Henrique Maldonado, RM557270  
 
-O foco do aluno deve estar em completar a regra do jogo, a validação das jogadas, o controle de fluxo e a organização da lógica do software com boa qualidade de código.
+**Branch de entrega:** `/3ESPF/03`
 
-Este core já fornece a base do domínio. Portanto, o aluno não deve se preocupar em criar novas interfaces ou novos componentes, a não ser que isso seja realmente necessário para a solução proposta.
+---
 
-## Regras do jogo
+## Sobre o Jogo
 
-### Estrutura geral
+**Dominó Ponta de Quina** é uma variação do dominó clássico onde a pontuação é obtida quando a soma das pontas externas do tabuleiro é múltipla de 5.  
+A partida termina quando um time atinge ou ultrapassa a **pontuação alvo** (padrão: 50 pontos).
 
-O jogo segue a hierarquia:
+### Regras resumidas
 
-- Partida
-- Rodadas
-- Jogadas
+- **Estrutura:** Partida → Rodadas → Jogadas  
+- **Times:** podem ter 1 ou 2 jogadores.  
+- **Distribuição:** 28 peças (0|0 a 6|6) embaralhadas, distribuídas igualmente.  
+- **Início da primeira rodada:** jogador que possui a sena `[6|6]`.  
+- **Rodadas seguintes:** começa o vencedor da rodada anterior.  
+- **Sentido:** horário.  
+- **Jogada:** escolher uma peça compatível com a ponta esquerda ou direita do tabuleiro.  
+  - Se não tiver peça compatível, o jogador **passa a vez**.  
+- **Pontuação da jogada:**  
+  - Soma das pontas externas (esquerda + direita).  
+  - Se a soma for múltipla de 5 → time do jogador ganha `soma / 5` pontos.  
+- **Finalização da rodada:**  
+  - **Batida:** um jogador fica sem peças. Vence a rodada.  
+  - **Tabuleiro travado:** nenhum jogador consegue jogar. Vence quem tiver a **menor soma** das peças na mão.  
+- **Finalização da partida:** quando um time atinge ou ultrapassa a pontuação alvo.
 
-Uma partida é composta por várias rodadas.
+---
 
-Cada rodada funciona como um set:
-- começa com a distribuição das peças
-- termina quando um jogador bate
-- ou termina quando o tabuleiro trava
+## Arquitetura do Projeto
 
-O jogo pode ser disputado:
-- por times com 1 jogador
-- por times com 2 jogadores
+O projeto segue uma arquitetura em camadas orientada ao domínio, com clara separação de responsabilidades.
 
-Não existe enum de modo de jogo. O formato da partida deve ser determinado pela composição dos times cadastrados.
+### Hierarquia principal
 
-### Regras esperadas da partida
+```
+Jogo (orquestrador)
+ └── Partida
+      └── Rodada
+           └── Jogada
+```
 
-- Registrar os times e os jogadores.
-- Iniciar a primeira rodada.
-- Iniciar novas rodadas enquanto nenhum time atingir a pontuação alvo.
-- Encerrar a partida quando um time atingir ou ultrapassar a pontuação alvo.
+### Estrutura de pastas (após implementação)
 
-### Regras esperadas da rodada
+```
+DominoPontaDeQuina.Core/
+├── Enums/                 # Status, tipos de finalização, lados do tabuleiro
+├── Exceptions/            # Exceções customizadas do domínio
+├── Interfaces/            # Contratos internos (já existentes, não alterados)
+├── Models/                # Entidades de domínio (Peca, Jogador, Time, etc.)
+├── Services/              # Classes auxiliares (baralho, validação, pontuação)
+├── Jogo.cs                # Orquestrador (não modificado além dos gaps permitidos)
+└── README.md              # Este arquivo
+```
 
-- Distribuir peças aos jogadores.
-- Na primeira rodada, iniciar com quem possuir a sena `[6|6]`.
-- Nas rodadas seguintes, iniciar com quem venceu a rodada anterior.
-- Executar as jogadas em sentido horário.
-- Finalizar a rodada quando um jogador bater ou quando o tabuleiro travar.
-- Em caso de travamento, definir o vencedor pela menor soma dos valores das peças restantes na mão.
+### Principais classes e responsabilidades
 
-### Regras esperadas da jogada
+| Classe | Responsabilidade |
+|--------|------------------|
+| `Jogo` | Controla o fluxo global: cria partidas, executa rodadas e jogadas. |
+| `Partida` | Gerencia times, pontuação alvo, histórico de rodadas e decide vencedor. |
+| `Rodada` | Distribui peças, controla turnos, verifica batida/travamento, calcula pontuação. |
+| `Tabuleiro` | Mantém as peças coladas, calcula pontas externas, valida compatibilidade. |
+| `MaoJogador` | Representa a mão de um jogador, permite escolher jogada e desfazer. |
+| `Jogada` | Registra a ação de um jogador (peça, lado, ou passar vez). |
+| `Peca` | Estrutura imutável com valores, suporte a inversão e comparação. |
 
-- O jogador escolhe uma peça e um lado do tabuleiro.
-- A peça só pode ser colada se for compatível com a ponta escolhida.
-- Depois da jogada, deve ser verificada a soma das pontas externas do tabuleiro.
-- Quando a soma das pontas externas for múltiplo de 5, o time do jogador pontua.
-- A pontuação da jogada deve ser calculada por `somaDasPontas / 5`.
-- Se o jogador não tiver peça compatível, ele deve passar a vez.
+### Serviços implementados
 
-## O que deve ser implementado pelos alunos
+- **`BaralhoService`** – cria as 28 peças e as embaralha (Fisher‑Yates).  
+- **`JogadaValidator`** – valida se uma jogada é permitida (peça pertence à mão, compatível com o tabuleiro).  
+- **`PontuacaoService`** – calcula os pontos com base na soma das pontas externas.
 
-Os principais gaps deixados no core e que devem ser implementados são:
+### Exceções customizadas
 
-- distribuição de peças
-- definição do jogador inicial da rodada
-- validação das jogadas
-- posicionamento de peças no tabuleiro
-- controle de turno
-- regra de pontuação
-- verificação de batida
-- verificação de tabuleiro travado
-- definição do vencedor da rodada
-- finalização da partida
-- implementação das exceções customizadas que fizerem sentido no fluxo
-- criação de serviços e validators para organizar a lógica do software
+Todas herdam de `DominoException` (namespace `DominoPontaDeQuina.Core.Exceptions`):
 
-## Limites do escopo do aluno
+- `JogadaInvalidaException` – jogada não permitida.  
+- `PartidaFinalizadaException` – operação inválida em partida encerrada.  
+- `RodadaNaoIniciadaException` – acesso a estado da rodada antes da inicialização.
 
-Durante o desenvolvimento deste trabalho:
+---
 
-- a classe `Jogo` não deve ser alterada
-- as interfaces existentes não devem ser alteradas
-- o aluno deve evitar criar novas interfaces ou novos componentes, a não ser que considere isso realmente necessário
-- o foco deve estar em completar e organizar a implementação dos gaps do core
+## Como executar
 
-## Fluxo de trabalho no repositório
+### Pré‑requisitos
 
-- O aluno deve trabalhar em uma branch do próprio repositório.
-- Não deve ser criado fork para a entrega.
-- A branch desenvolvida será submetida a uma pipeline automatizada de testes.
+- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)  
+- Git (opcional, mas recomendado)
 
-## Critérios de avaliação
+### Clonar e compilar
 
-A nota será composta pelos seguintes critérios:
+```bash
+git clone https://github.com/3ES-CSharp/DominoPontaDeQuina.git
+cd DominoPontaDeQuina
+dotnet build
+```
 
-- Pipeline de testes: 50%
-- Documentação do código: 10%
-- Implementação de exceções customizadas: 10%
-- Criação de serviços e validators organizando a lógica do software: 20%
-- Aderência às convenções do C#: 10%
+### Executar os testes
 
-## Convenções esperadas
+```bash
+dotnet test DominoPontaDeQuina.Tests
+```
 
-- Seguir as convenções de nomenclatura do C#.
-- Escrever código limpo e organizado.
-- Documentar os principais tipos e membros públicos.
-- Utilizar exceções customizadas quando fizer sentido para a regra do domínio.
-- Organizar a lógica em serviços e validators quando isso melhorar a separação de responsabilidades.
+Para ver os testes com detalhes:
 
-## Observação final
+```bash
+dotnet test --verbosity detailed
+```
 
-O objetivo não é reinventar a arquitetura inteira do projeto, mas completar com qualidade os pontos que foram deixados em aberto no core.
+### Utilizar a biblioteca em outro projeto
+
+Adicione a referência ao projeto `DominoPontaDeQuina.Core.csproj` e use as classes públicas (`Jogo`, `Partida`, `Jogador`, `Time`, etc.).
+
+Exemplo mínimo para iniciar uma partida:
+
+```csharp
+var jogo = new Jogo();
+await jogo.IniciarNovaPartida();   // inicia automaticamente a primeira rodada
+```
+
+> **Atenção:** A classe `Jogo` já contém a orquestração completa. O aluno **não deve alterá-la**. Toda a lógica de negócio foi encapsulada nas demais classes.
+
+---
+
+## Cobertura de testes
+
+O projeto possui **mais de 70 testes** distribuídos em:
+
+- Testes básicos de entidades (`PecaTests`, `TabuleiroTests`, `MaoJogadorTests`, `PartidaTests`)  
+- Testes de fluxo (`PartidaFluxoTests`, `RodadaGapTests`, `TabuleiroGapTests`)  
+- Testes de exceções customizadas (`JogoTests`, `RodadaExcecaoTests`)
+
+Todos os **gaps** identificados no relatório `GAPS_RELATORIO.md` foram implementados e validados pelos testes.
+
+Para executar apenas os testes de um arquivo específico:
+
+```bash
+dotnet test --filter "FullyQualifiedName~TabuleiroGapTests"
+```
+
+---
+
+## Decisões de implementação
+
+1. **Não alterar interfaces e `Jogo`** – respeitamos rigorosamente essa restrição.  
+2. **Uso de serviços estáticos** – escolhemos classes estáticas (`BaralhoService`, `JogadaValidator`, `PontuacaoService`) para manter a simplicidade e separar responsabilidades sem introduzir novas dependências.  
+3. **Exceções customizadas** – todas as situações inválidas (jogada inválida, partida finalizada, rodada não iniciada) lançam exceções específicas, facilitando o tratamento e a rastreabilidade.  
+4. **Documentação XML** – todos os membros públicos estão documentados em português, conforme as diretrizes do enunciado.  
+5. **Propriedade `Partida` em `Rodada`** – adicionamos uma referência para a partida atual permitindo que `CalcularPontuacao` atribua pontos ao time correto, sem quebrar o contrato das interfaces.  
+6. **Método `ObterMaoDoJogador` em `Rodada`** – necessário para a validação em `Jogo.ValidarJogada`, mas mantido como método público auxiliar.
+
+---
+
+## Possíveis melhorias futuras
+
+- Implementar uma interface de usuário (console ou Web API) para interação real.  
+- Adicionar persistência do histórico de partidas.  
+- Suporte a diferentes modos de pontuação alvo.  
+- Logging detalhado das jogadas.
+
+---
+
+## Referências
+
+- [Regras oficiais do Dominó Ponta de Quina](https://www.dominosp.com.br/pontadequina)  
+- [Microsoft C# Coding Conventions](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions)  
+- [xUnit Documentation](https://xunit.net/)
+
+---
+
+**Desenvolvido para fins acadêmicos – Checkpoint 3 – FIAP 3ES/2026**  
+Todos os direitos reservados aos autores.

@@ -41,8 +41,6 @@ public class Tabuleiro
     /// <returns><see langword="true"/> quando a peca puder ser colada; caso contrario, <see langword="false"/>.</returns>
     public bool PodeColar(Peca peca, LadoTabuleiro lado)
     {
-        // TODO ALUNO: validar se a peca pode ser colada no lado escolhido.
-        //throw new NotImplementedException();
         if (EstaVazio) return true;
 
         return lado switch
@@ -61,9 +59,6 @@ public class Tabuleiro
     /// <param name="lado">O lado do tabuleiro.</param>
     public void Colar(Peca peca, LadoTabuleiro lado)
     {
-        // TODO ALUNO: posicionar a peca no lado escolhido, invertendo quando necessario.
-        //throw new NotImplementedException();
-
         if (!PodeColar(peca, lado)) throw new JogadaInvalidaException($"A peça {peca} não pode ser colada no lado {lado}.");
 
         if (EstaVazio) {
@@ -99,11 +94,7 @@ public class Tabuleiro
     /// <returns><see langword="true"/> quando o tabuleiro estiver travado; caso contrario, <see langword="false"/>.</returns>
     public bool EstaTravado(IEnumerable<MaoJogador> maosJogadores)
     {
-        // TODO ALUNO: implementar a regra de travamento do tabuleiro.
-        //throw new NotImplementedException();
-
         if(EstaVazio) return false;
-        if(maosJogadores == null) return false; 
 
         foreach (var mao in maosJogadores)
         {

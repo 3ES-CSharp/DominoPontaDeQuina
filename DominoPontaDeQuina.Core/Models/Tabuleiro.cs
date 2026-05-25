@@ -40,8 +40,14 @@ public class Tabuleiro
     /// <returns><see langword="true"/> quando a peca puder ser colada; caso contrario, <see langword="false"/>.</returns>
     public bool PodeColar(Peca peca, LadoTabuleiro lado)
     {
-        // TODO ALUNO: validar se a peca pode ser colada no lado escolhido.
-        throw new NotImplementedException();
+        if (EstaVazio) return true;
+        
+         return lado switch
+        {
+            LadoTabuleiro.Esquerda => peca.PossuiValor(PontaEsquerda!.Value),
+            LadoTabuleiro.Direita => peca.PossuiValor(PontaDireita!.Value),
+            _ => false
+        };
     }
 
     /// <summary>
@@ -55,7 +61,28 @@ public class Tabuleiro
         // TODO ALUNO: posicionar a peca no lado escolhido, invertendo quando necessario.
         throw new NotImplementedException();
     }
-
+    public void Colar(Peca peca, LadoTabuleiro lado)
+    {
+        if (!PodeColar(peca, lado))
+            throw new JogadaInvalidaException($"Não é possível colar a peça {peca} no lado {lado}.");
+        
+        if (EstaVazio)
+        {
+            Pecas.Add(peca);
+            return;
+        }
+        if (lado == LadoTabuleiro.Esquerda)
+        {
+            // Ajusta a orientação da peça para encaixar na ponta esquerda
+            Peca pecaParaInserir = peca.ValorB == PontaEsquerda ? peca.Inverter() : peca;
+            Pecas.Insert(0, pecaParaInserir);
+        }
+        else // Direita
+        {
+            Peca pecaParaInserir = peca.ValorA == PontaDireita ? peca : peca.Inverter();
+            Pecas.Add(pecaParaInserir);
+        }
+    }
     /// <summary>
     /// Soma os valores das pontas externas atualmente expostas.
     /// Essa soma e a base para regras de pontuacao em que a rodada concede pontos quando o resultado for multiplo de 5.
@@ -74,6 +101,17 @@ public class Tabuleiro
     {
         // TODO ALUNO: implementar a regra de travamento do tabuleiro.
         throw new NotImplementedException();
+    }
+    public bool EstaTravado(IEnumerable<MaoJogador> maosJogadores)
+    {
+        if (EstaVazio) return false;
+
+        foreach (var mao in maosJogadores)
+        {
+        if (mao._pecas.Any(p => PodeColar(p, LadoTabuleiro.Esquerda) || PodeColar(p, LadoTabuleiro.Direita)))
+            return false;
+        }
+    return true;
     }
 
     /// <summary>

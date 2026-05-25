@@ -1,4 +1,5 @@
 using DominoPontaDeQuina.Core.Enums;
+using DominoPontaDeQuina.Core.Exceptions;
 using DominoPontaDeQuina.Core.Interfaces;
 using System.Collections.ObjectModel;
 
@@ -44,7 +45,7 @@ public class Rodada() : IRodada
     /// <inheritdoc />
     public void RegistrarJogada(Jogada jogada)
     {
-        ArgumentNullException.ThrowIfNull(jogada);
+        if (jogada == null) throw new JogadaInvalidaException("Não é possível registrar uma jogada nula.");
         jogada.MarcarComoAplicada();
         Jogadas.Push(jogada);
         CalcularPontuacao();

@@ -1,4 +1,5 @@
 using DominoPontaDeQuina.Core.Enums;
+using DominoPontaDeQuina.Core.Exceptions;
 using DominoPontaDeQuina.Core.Interfaces;
 using System.Collections.ObjectModel;
 
@@ -55,7 +56,7 @@ public class Partida(int pontuacaoAlvo = 50) : IPartida
     public void IniciarNovaRodada()
     {
         if (Status is StatusPartida.Finalizada)
-            throw new InvalidOperationException("Não é possível iniciar uma nova rodada em uma partida finalizada.");
+            throw new PartidaInvalidaException("Não é possível iniciar uma nova rodada em uma partida finalizada.");
         Status = StatusPartida.EmAndamento;
         _rodadas.Push(new());
     }
@@ -64,7 +65,7 @@ public class Partida(int pontuacaoAlvo = 50) : IPartida
     public void FinalizarPartida()
     {
         if (Status is not StatusPartida.EmAndamento)
-            throw new InvalidOperationException("Não é possível finalizar uma partida que não está em andamento.");
+            throw new PartidaInvalidaException("Não é possível finalizar uma partida que não está em andamento.");
         if(VerificaPontuacaoAlvoAtingida())
             Status = StatusPartida.Finalizada;
     }

@@ -8,6 +8,7 @@ Este repositório contém a implementação completa das regras e da orquestraç
 
 - **Gabriel Galerani** - RM 557421
 - **Leonardo Taschin** - RM 554583
+- ** Gustavo Teixeira** - RM 557876
 
 ---
 

@@ -1,44 +1,39 @@
-# Domino Ponta de Quina
+# Desenvolvendo um Dominó Diferenciado
 
-## Projetos
+Nesta atividade foi realizada a configuração da camada de persistência do projeto **Domino Ponta de Quina** utilizando **Entity Framework Core**.
 
-- `DominoPontaDeQuina.Core`: regras e fluxo do jogo.
-- `DominoPontaDeQuina.Domain`: entidades e enums persistentes.
-- `DominoPontaDeQuina.Repository`: `DominoDbContext`, mapeamentos Fluent API e repositorios EF Core.
-- `DominoPontaDeQuina.Migrations`: aplicacao console usada como startup project para migrations.
-- `DominoPontaDeQuina.Tests`: testes automatizados do nucleo do jogo.
+As entidades `Usuario` e `Jogador` foram configuradas com **Data Annotations**, definindo informações como chave primária, campos obrigatórios, limites de tamanho e relacionamentos entre as entidades.
 
-## Modelo persistente
+A entidade `Jogo` foi mantida sem configurações adicionais para que o **Entity Framework Core** interpretasse sua estrutura através das convenções padrão.
 
-`Usuario` representa a conta do aplicativo cliente e pode possuir varios `Jogador`, que sao perfis de jogo.
-`Jogo` representa uma partida armazenada para consulta de historico. `ParticipacaoJogo` liga um jogador a um jogo e registra sua posicao, pontuacao e resultado.
+Também foi implementado o `DominoDbContext`, responsável por representar o contexto do banco de dados e disponibilizar as entidades por meio dos `DbSet`.
 
-Esta etapa prepara a persistencia e o futuro fluxo de autenticacao. API, endpoints, autenticacao e JWT estao fora do escopo.
+Para a persistência, o projeto foi configurado para utilizar **SQL Server** através do provider `Microsoft.EntityFrameworkCore.SqlServer`.
 
-## Pre-requisitos
-
-- .NET 8 SDK
-- Ferramenta `dotnet-ef` 8.x (`dotnet tool install --global dotnet-ef --version 8.*`)
-
-## Restaurar e compilar
+Após a configuração do contexto e das entidades, foi criada a migration inicial:
 
 ```bash
-dotnet restore
-dotnet build
+dotnet ef migrations add Inicial --project DominoPontaDeQuina.Repository --startup-project DominoPontaDeQuina.Migrations
 ```
 
-## Migrations
-
-Os comandos devem usar `DominoPontaDeQuina.Migrations` como startup project e `DominoPontaDeQuina.Repository` como projeto do contexto:
+Em seguida, a migration foi aplicada ao banco de dados:
 
 ```bash
-dotnet ef migrations add Inicial \
-  --project DominoPontaDeQuina.Repository \
-  --startup-project DominoPontaDeQuina.Migrations
-
-dotnet ef database update \
-  --project DominoPontaDeQuina.Repository \
-  --startup-project DominoPontaDeQuina.Migrations
+dotnet ef database update --project DominoPontaDeQuina.Repository --startup-project DominoPontaDeQuina.Migrations
 ```
 
-O banco SQLite local `domino.db` e ignorado pelo Git.
+Com isso, o Entity Framework Core gerou a estrutura do banco `DominoDB` e suas respectivas tabelas com base nas entidades do projeto.
+
+## Próximos Passos
+
+Como evolução do projeto, os próximos passos podem incluir:
+
+* Implementar repositories para manipulação dos dados;
+* Criar operações de cadastro, consulta, atualização e exclusão;
+* Implementar a camada de serviços;
+* Criar uma API para acesso aos dados;
+* Implementar autenticação de usuários;
+* Adicionar autenticação e autorização com JWT;
+* Integrar a persistência com o fluxo das partidas;
+* Criar interfaces para cadastro de usuários e jogadores;
+* Ampliar os testes automatizados do projeto.

@@ -1,44 +1,46 @@
-# Domino Ponta de Quina
+# Laboratório EF Core + LINQ
 
-## Projetos
+Nesta etapa do projeto **Domino Ponta de Quina**, o modelo de dados foi evoluído utilizando **Entity Framework Core**, **Fluent API** e **LINQ**.
 
-- `DominoPontaDeQuina.Core`: regras e fluxo do jogo.
-- `DominoPontaDeQuina.Domain`: entidades e enums persistentes.
-- `DominoPontaDeQuina.Repository`: `DominoDbContext`, mapeamentos Fluent API e repositorios EF Core.
-- `DominoPontaDeQuina.Migrations`: aplicacao console usada como startup project para migrations.
-- `DominoPontaDeQuina.Tests`: testes automatizados do nucleo do jogo.
+A classe `Jogo` foi renomeada para `Partida` e a classe `ParticipacaoJogo` passou a se chamar `ParticipacaoPartida`, deixando o modelo mais coerente com o domínio da aplicação.
 
-## Modelo persistente
+Também foram atualizadas as referências relacionadas a essas entidades, como propriedades de navegação, chaves estrangeiras e coleções.
 
-`Usuario` representa a conta do aplicativo cliente e pode possuir varios `Jogador`, que sao perfis de jogo.
-`Jogo` representa uma partida armazenada para consulta de historico. `ParticipacaoJogo` liga um jogador a um jogo e registra sua posicao, pontuacao e resultado.
+Os relacionamentos entre as entidades passaram a ser configurados diretamente no `DominoDbContext` através do método `OnModelCreating`, utilizando **Fluent API**.
 
-Esta etapa prepara a persistencia e o futuro fluxo de autenticacao. API, endpoints, autenticacao e JWT estao fora do escopo.
+Foram mapeados os relacionamentos entre:
 
-## Pre-requisitos
+* `Usuario` e `Jogador`;
+* `Jogador` e `ParticipacaoPartida`;
+* `Partida` e `ParticipacaoPartida`.
 
-- .NET 8 SDK
-- Ferramenta `dotnet-ef` 8.x (`dotnet tool install --global dotnet-ef --version 8.*`)
+Além disso, foi criada uma camada **Repository** para cada uma das principais entidades:
 
-## Restaurar e compilar
+* `UsuarioRepository`;
+* `JogadorRepository`;
+* `PartidaRepository`;
+* `ParticipacaoPartidaRepository`.
 
-```bash
-dotnet restore
-dotnet build
-```
+Os repositories são responsáveis pelo acesso aos dados e utilizam **LINQ** para realizar buscas e consultas, através de operações como:
 
-## Migrations
+* `Where`;
+* `FirstOrDefault`;
+* `ToList`;
+* `Include`.
 
-Os comandos devem usar `DominoPontaDeQuina.Migrations` como startup project e `DominoPontaDeQuina.Repository` como projeto do contexto:
+Também foram implementadas operações básicas de inclusão, consulta, atualização e exclusão das entidades utilizando o `DominoDbContext`.
 
-```bash
-dotnet ef migrations add Inicial \
-  --project DominoPontaDeQuina.Repository \
-  --startup-project DominoPontaDeQuina.Migrations
+Após as alterações no modelo, foi criada uma nova migration para registrar a evolução da estrutura do banco de dados e, em seguida, a migration foi aplicada ao banco com o Entity Framework Core.
 
-dotnet ef database update \
-  --project DominoPontaDeQuina.Repository \
-  --startup-project DominoPontaDeQuina.Migrations
-```
+## Próximos Passos
 
-O banco SQLite local `domino.db` e ignorado pelo Git.
+Como evolução do projeto, os próximos passos podem incluir:
+
+* Criar interfaces para os repositories;
+* Implementar uma camada de serviços;
+* Adicionar validações das regras de negócio;
+* Criar consultas LINQ mais avançadas;
+* Implementar operações assíncronas com `async` e `await`;
+* Criar testes automatizados para os repositories;
+* Integrar a camada de persistência com o fluxo das partidas;
+* Criar uma API para disponibilizar as operações do sistema.

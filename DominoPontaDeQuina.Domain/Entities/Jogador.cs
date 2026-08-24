@@ -19,6 +19,6 @@ public class Jogador
     [ForeignKey(nameof(UsuarioId))]
     public Usuario Usuario { get; set; } = null!;
 
-    public ICollection<ParticipacaoJogo> Participacoes { get; set; }
-        = new List<ParticipacaoJogo>();
+    public ICollection<ParticipacaoPartida> Participacoes { get; set; }
+        = new List<ParticipacaoPartida>();
 }

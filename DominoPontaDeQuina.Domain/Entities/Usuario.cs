@@ -1,5 +1,9 @@
 namespace DominoPontaDeQuina.Domain.Entities;
 
+/// <summary>
+/// Representa a conta do usuário do aplicativo cliente, que pode possuir vários jogadores.
+/// O mapeamento completo desta entidade é feito via Fluent API no DominoDbContext.
+/// </summary>
 public class Usuario
 {
     public Guid Id { get; set; } = Guid.NewGuid();

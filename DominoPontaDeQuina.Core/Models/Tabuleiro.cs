@@ -40,8 +40,14 @@ public class Tabuleiro
     /// <returns><see langword="true"/> quando a peca puder ser colada; caso contrario, <see langword="false"/>.</returns>
     public bool PodeColar(Peca peca, LadoTabuleiro lado)
     {
-        // TODO ALUNO: validar se a peca pode ser colada no lado escolhido.
-        throw new NotImplementedException();
+        // Tabuleiro vazio: qualquer peca pode ser colada em qualquer lado
+        if (EstaVazio)
+            return true;
+
+        // Verifica se a peca possui o valor compativel com a ponta do lado escolhido
+        return lado == LadoTabuleiro.Esquerda
+            ? peca.PossuiValor(PontaEsquerda!.Value)
+            : peca.PossuiValor(PontaDireita!.Value);
     }
 
     /// <summary>
@@ -52,8 +58,29 @@ public class Tabuleiro
     /// <param name="lado">O lado do tabuleiro.</param>
     public void Colar(Peca peca, LadoTabuleiro lado)
     {
-        // TODO ALUNO: posicionar a peca no lado escolhido, invertendo quando necessario.
-        throw new NotImplementedException();
+        if (EstaVazio)
+        {
+            // Primeira peca: insere diretamente
+            Pecas.Add(peca);
+            return;
+        }
+
+        if (lado == LadoTabuleiro.Esquerda)
+        {
+            // O ValorB da peca deve encaixar com a ponta esquerda do tabuleiro
+            // para que o ValorA da peca fique exposto como nova ponta esquerda
+            if (peca.ValorB != PontaEsquerda!.Value)
+                peca = peca.Inverter();
+            Pecas.Insert(0, peca);
+        }
+        else // LadoTabuleiro.Direita
+        {
+            // O ValorA da peca deve encaixar com a ponta direita do tabuleiro
+            // para que o ValorB da peca fique exposto como nova ponta direita
+            if (peca.ValorA != PontaDireita!.Value)
+                peca = peca.Inverter();
+            Pecas.Add(peca);
+        }
     }
 
     /// <summary>
@@ -72,8 +99,14 @@ public class Tabuleiro
     /// <returns><see langword="true"/> quando o tabuleiro estiver travado; caso contrario, <see langword="false"/>.</returns>
     public bool EstaTravado(IEnumerable<MaoJogador> maosJogadores)
     {
-        // TODO ALUNO: implementar a regra de travamento do tabuleiro.
-        throw new NotImplementedException();
+        // Tabuleiro vazio nunca esta travado
+        if (EstaVazio)
+            return false;
+
+        // Travado quando nenhuma mao consegue colar em nenhum dos dois lados
+        return maosJogadores.All(mao =>
+            !mao.Pecas.Any(peca => PodeColar(peca, LadoTabuleiro.Esquerda)) &&
+            !mao.Pecas.Any(peca => PodeColar(peca, LadoTabuleiro.Direita)));
     }
 
     /// <summary>

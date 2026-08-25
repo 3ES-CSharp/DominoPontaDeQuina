@@ -91,9 +91,9 @@ public class Jogo()
     public async Task ExecutarJogadaAsync()
     {
         if (PartidaAtual?.Status is not StatusPartida.EmAndamento)
-            throw new InvalidOperationException("Nao e possivel executar uma jogada em uma partida que nao esta em andamento.");
+            throw new DominoPontaDeQuinaException("Nao e possivel executar uma jogada em uma partida que nao esta em andamento.");
         if (PartidaAtual.RodadaAtual?.Status is not StatusRodada.EmAndamento)
-            throw new InvalidOperationException("Nao e possivel executar uma jogada em uma rodada que nao esta em andamento.");
+            throw new DominoPontaDeQuinaException("Nao e possivel executar uma jogada em uma rodada que nao esta em andamento.");
 
         var jogadorAtual = PartidaAtual.RodadaAtual.JogadorAtual;
         var jogada = await GetJogadaAsync();
@@ -115,7 +115,7 @@ public class Jogo()
     public Task<Jogada> GetJogadaAsync()
     {
         if (PartidaAtual?.RodadaAtual is null)
-            throw new InvalidOperationException("Nao ha rodada atual para obter jogada.");
+            throw new DominoPontaDeQuinaException("Nao ha rodada atual para obter jogada.");
 
         var jogadorAtual = PartidaAtual.RodadaAtual.JogadorAtual;
         return Task.FromResult(jogadorAtual.GetJogada(PartidaAtual.RodadaAtual.Tabuleiro));

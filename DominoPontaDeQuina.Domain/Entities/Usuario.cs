@@ -1,5 +1,9 @@
 namespace DominoPontaDeQuina.Domain.Entities;
 
+/// <summary>
+/// Representa um usuário do sistema.
+/// O mapeamento completo desta entidade é feito via Fluent API no DominoDbContext.
+/// </summary>
 public class Usuario
 {
     public Guid Id { get; set; } = Guid.NewGuid();

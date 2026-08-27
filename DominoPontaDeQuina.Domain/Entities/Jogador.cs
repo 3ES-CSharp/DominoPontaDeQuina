@@ -15,10 +15,11 @@ public class Jogador
     [Required]
     public Guid UsuarioId { get; set; }
 
-    [ForeignKey(nameof(UsuarioId))]
     public Usuario Usuario { get; set; } = null!;
 
     public int Vitorias { get; set; }
 
     public int Derrotas { get; set; }
+
+    public ICollection<ParticipacaoPartida> Participacoes { get; set; } = new List<ParticipacaoPartida>();
 }

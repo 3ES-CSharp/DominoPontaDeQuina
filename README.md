@@ -1,44 +1,73 @@
-# Domino Ponta de Quina
+     # Domino Ponta de Quina
 
-## Projetos
+Projeto de implementação das regras do jogo Dominó Ponta de Quina, organizado em camadas.
 
-- `DominoPontaDeQuina.Core`: regras e fluxo do jogo.
-- `DominoPontaDeQuina.Domain`: entidades e enums persistentes.
-- `DominoPontaDeQuina.Repository`: `DominoDbContext`, mapeamentos Fluent API e repositorios EF Core.
-- `DominoPontaDeQuina.Migrations`: aplicacao console usada como startup project para migrations.
-- `DominoPontaDeQuina.Tests`: testes automatizados do nucleo do jogo.
+## Estrutura da solução
 
-## Modelo persistente
+- `DominoPontaDeQuina.Core`: regras de negócio, modelos, interfaces e enums do jogo.
+- `DominoPontaDeQuina.Domain`: entidades persistentes e relacionamentos do domínio.
+- `DominoPontaDeQuina.Infrastructure`: persistência com Entity Framework Core e mapeamentos Fluent API.
+- `DominoPontaDeQuina.Migrations`: projeto independente para migrations do banco de dados.
+- `DominoPontaDeQuina.Tests`: testes automatizados do domínio.
 
-`Usuario` representa a conta do aplicativo cliente e pode possuir varios `Jogador`, que sao perfis de jogo.
-`Jogo` representa uma partida armazenada para consulta de historico. `ParticipacaoJogo` liga um jogador a um jogo e registra sua posicao, pontuacao e resultado.
+## Persistência
 
-Esta etapa prepara a persistencia e o futuro fluxo de autenticacao. API, endpoints, autenticacao e JWT estao fora do escopo.
+O banco utilizado é SQL Server LocalDB. O `DominoDbContext` está em `DominoPontaDeQuina.Infrastructure` e possui as entidades:
 
-## Pre-requisitos
+- `Usuario`, utilizada para autenticação;
+- `Partida`;
+- `Jogador`;
+- `ParticipacaoPartida`, associação entre jogador e partida com seus pontos;
+- `Lance`, registro de lances com timestamp;
+- `Ranking`, contador de vitórias por jogador.
 
-- .NET 8 SDK
-- Ferramenta `dotnet-ef` 8.x (`dotnet tool install --global dotnet-ef --version 8.*`)
+As chaves estrangeiras ficam implícitas nas entidades e são configuradas como shadow properties pelo Fluent API.
 
-## Restaurar e compilar
+## Dependências entre camadas
 
-```bash
-dotnet restore
-dotnet build
+`Domain` não depende de nenhuma camada e contém as entidades e os contratos dos repositórios. `Application` depende apenas de `Domain` e implementa os casos de uso. `Infrastructure` depende de `Application` e `Domain` para implementar os repositórios com EF Core. A composição é feita por injeção de dependência.
+
+### Configuração da conexão
+
+A connection string padrão fica em `DominoPontaDeQuina.Migrations/appsettings.json`:
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=DominoPontaDeQuina;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True"
+  }
+}
 ```
 
-## Migrations
+Para sobrescrevê-la sem alterar o arquivo, utilize a variável `ConnectionStrings__DefaultConnection`.
 
-Os comandos devem usar `DominoPontaDeQuina.Migrations` como startup project e `DominoPontaDeQuina.Repository` como projeto do contexto:
+### Migrations
+
+A partir da raiz do repositório:
 
 ```bash
-dotnet ef migrations add Inicial \
-  --project DominoPontaDeQuina.Repository \
-  --startup-project DominoPontaDeQuina.Migrations
-
 dotnet ef database update \
-  --project DominoPontaDeQuina.Repository \
-  --startup-project DominoPontaDeQuina.Migrations
+  --project DominoPontaDeQuina.Migrations \
+  --startup-project DominoPontaDeQuina.Migrations \
+  --context DominoDbContext
 ```
 
-O banco SQLite local `domino.db` e ignorado pelo Git.
+Para criar uma nova migration:
+
+```bash
+dotnet ef migrations add NomeDaMigration \
+  --project DominoPontaDeQuina.Migrations \
+  --startup-project DominoPontaDeQuina.Migrations \
+  --context DominoDbContext \
+  --output-dir Persistence/Migrations
+```
+
+## Build e testes
+
+```bash
+dotnet restore DominoPontaDeQuina.slnx
+dotnet build DominoPontaDeQuina.slnx
+dotnet test DominoPontaDeQuina.Tests/DominoPontaDeQuina.Tests.csproj
+```
+
+O workflow do GitHub Actions executa restore, build e testes. SonarCloud, geração de relatórios e artefatos não fazem parte da pipeline atual. Falhas dos testes não bloqueiam o workflow.

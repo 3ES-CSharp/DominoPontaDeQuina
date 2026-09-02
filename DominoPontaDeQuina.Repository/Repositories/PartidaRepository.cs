@@ -1,10 +1,11 @@
-﻿using DominoPontaDeQuina.Domain.Entities;
+﻿using DominoPontaDeQuina.Core.Interfaces;
+using DominoPontaDeQuina.Domain.Entities;
 using DominoPontaDeQuina.Repository.Context;
 using Microsoft.EntityFrameworkCore;
 
 namespace DominoPontaDeQuina.Repository.Repositories;
 
-public class PartidaRepository
+public class PartidaRepository : IPartidaRepository
 {
     private readonly DominoDbContext _context;
 
@@ -16,22 +17,12 @@ public class PartidaRepository
     public async Task<Partida?> BuscarPorIdAsync(Guid id)
     {
         return await _context.Partidas
-            .Include(p => p.Participacoes)
-            .ThenInclude(pp => pp.Jogador)
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
     public async Task<List<Partida>> BuscarTodosAsync()
     {
         return await _context.Partidas
-            .Include(p => p.Participacoes)
-            .ToListAsync();
-    }
-
-    public async Task<List<Partida>> BuscarPorStatusAsync(StatusJogo status)
-    {
-        return await _context.Partidas
-            .Where(p => p.Status == status)
             .ToListAsync();
     }
 

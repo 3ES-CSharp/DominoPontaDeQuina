@@ -7,6 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\DominoPontaDeQuina.Repository\DominoPontaDeQuina.Repository.csproj" />
+    <ProjectReference Include="..\DominoPontaDeQuina.Core\DominoPontaDeQuina.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.15">

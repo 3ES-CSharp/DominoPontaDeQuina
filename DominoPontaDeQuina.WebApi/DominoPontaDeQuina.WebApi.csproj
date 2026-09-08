@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.30" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DominoPontaDeQuina.Application\DominoPontaDeQuina.Application.csproj" />
+    <ProjectReference Include="..\DominoPontaDeQuina.Core\DominoPontaDeQuina.Core.csproj" />
+    <ProjectReference Include="..\DominoPontaDeQuina.Repository\DominoPontaDeQuina.Repository.csproj" />
+    <ProjectReference Include="..\DominoPontaDeQuina.Domain\DominoPontaDeQuina.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

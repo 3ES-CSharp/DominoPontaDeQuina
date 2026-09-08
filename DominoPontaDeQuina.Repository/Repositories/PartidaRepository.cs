@@ -34,7 +34,16 @@ public class PartidaRepository : IPartidaRepository
 
     public async Task AtualizarAsync(Partida partida)
     {
-        _context.Partidas.Update(partida);
+        var existente = await _context.Partidas
+            .FirstOrDefaultAsync(p => p.Id == partida.Id);
+
+        if (existente is null)
+            return;
+
+        existente.IniciadoEm = partida.IniciadoEm;
+        existente.FinalizadoEm = partida.FinalizadoEm;
+        existente.Status = partida.Status;
+
         await _context.SaveChangesAsync();
     }
 

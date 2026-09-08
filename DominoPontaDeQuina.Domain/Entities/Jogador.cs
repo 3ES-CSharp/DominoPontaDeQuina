@@ -15,7 +15,7 @@ public class Jogador
     [Required]
     public Guid UsuarioId { get; set; }
 
-    public Usuario Usuario { get; set; } = null!;
+    public Usuario? Usuario { get; set; }
 
     public int Vitorias { get; set; }
 

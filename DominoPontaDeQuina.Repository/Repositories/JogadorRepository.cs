@@ -48,7 +48,17 @@ public class JogadorRepository : IJogadorRepository
 
     public async Task AtualizarAsync(Jogador jogador)
     {
-        _context.Jogadores.Update(jogador);
+        var existente = await _context.Jogadores
+            .FirstOrDefaultAsync(j => j.Id == jogador.Id);
+
+        if (existente is null)
+            return;
+
+        existente.Nome = jogador.Nome;
+        existente.UsuarioId = jogador.UsuarioId;
+        existente.Vitorias = jogador.Vitorias;
+        existente.Derrotas = jogador.Derrotas;
+
         await _context.SaveChangesAsync();
     }
 

@@ -6,11 +6,11 @@ public class ParticipacaoPartida
 
     public Guid PartidaId { get; set; }
 
-    public Partida Partida { get; set; } = null!;
+    public Partida? Partida { get; set; }
 
     public Guid JogadorId { get; set; }
 
-    public Jogador Jogador { get; set; } = null!;
+    public Jogador? Jogador { get; set; }
 
     public int Posicao { get; set; }
 

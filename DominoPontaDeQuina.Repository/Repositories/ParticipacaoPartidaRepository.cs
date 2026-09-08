@@ -48,7 +48,18 @@ public class ParticipacaoPartidaRepository : IParticipacaoPartidaRepository
 
     public async Task AtualizarAsync(ParticipacaoPartida participacao)
     {
-        _context.ParticipacoesPartida.Update(participacao);
+        var existente = await _context.ParticipacoesPartida
+            .FirstOrDefaultAsync(pp => pp.Id == participacao.Id);
+
+        if (existente is null)
+            return;
+
+        existente.PartidaId = participacao.PartidaId;
+        existente.JogadorId = participacao.JogadorId;
+        existente.Posicao = participacao.Posicao;
+        existente.Pontuacao = participacao.Pontuacao;
+        existente.Vencedor = participacao.Vencedor;
+
         await _context.SaveChangesAsync();
     }
 

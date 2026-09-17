@@ -1,12 +1,14 @@
 using DominoPontaDeQuina.Api.Models;
 using DominoPontaDeQuina.Application.Services;
 using DominoPontaDeQuina.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DominoPontaDeQuina.Api.Controllers;
 
 /// <summary>Expõe as operações de gerenciamento de partidas.</summary>
 /// <param name="partidas">Serviço de aplicação das partidas.</param>
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class PartidasController(IPartidaService partidas) : ControllerBase

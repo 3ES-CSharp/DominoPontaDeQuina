@@ -1,5 +1,8 @@
 # Domino Ponta de Quina
 
+## Integrantes
+- Augusto Ferreira Rogel de Souza / RM 557709
+
 ## Projetos
 
 - `DominoPontaDeQuina.Core`: regras e fluxo do jogo.

@@ -1,0 +1,6 @@
+@DominoPontaDeQuina.WebApi_HostAddress = http://localhost:5031
+
+GET {{DominoPontaDeQuina.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
